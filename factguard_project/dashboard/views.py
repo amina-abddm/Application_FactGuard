@@ -9,7 +9,7 @@ from django.http import HttpResponse
 
 
 
-#@login_required
+#@login_required           # a décommenter lorseque la connexion de l'utilisateur sera gerer 
 def dashboard_view(request):
     # Calculer les statistiques (données simulées pour l'instant)
     total_analyses = 156
@@ -49,10 +49,10 @@ def dashboard_view(request):
         'avg_score': avg_score,
         'type_stats': type_stats,
         'suggestions': suggestions,
-        'user': request.user if request.user.is_authenticated else None
+        'user': request.user           # temporaire le temps de gerer la connexion de l'utilisateur 
     }
     
-    return render(request, 'dashboard/coming_soon.html', context)
+    return render(request, 'dashboard/dashboard.html', context)
 
 
 def analyzer_view(request):
