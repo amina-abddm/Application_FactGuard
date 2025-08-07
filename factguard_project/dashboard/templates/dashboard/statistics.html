@@ -5,27 +5,20 @@
 <link rel="stylesheet" href="{% static 'dashboard/css/custom.css' %}">
 {% endblock %}
 
-{% block title %}Tableau de bord - FactGuard{% endblock %}
+{% block title %}{{ page }} - FactGuard{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
-    <!-- Sidebar -->
+    <!-- Sidebar (votre sidebar existante) -->
     <aside class="sidebar">
         <div class="sidebar-content">
-            <!-- Brand -->
             <div class="brand">
                 <div class="brand-icon">
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <span class="brand-text">FactGuard</span>
             </div>
-
-            <!-- Navigation -->
             <nav class="navigation">
-                <a href="{% url 'dashboard' %}" class="nav-link active">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Tableau de bord</span>
-                </a>
                 <a href="{% url 'analyzer' %}" class="nav-link">
                     <i class="fas fa-search"></i>
                     <span>Analyseur</span>
@@ -34,7 +27,7 @@
                     <i class="fas fa-history"></i>
                     <span>Historique</span>
                 </a>
-                <a href="{% url 'statistics' %}" class="nav-link">
+                <a href="{% url 'statistics' %}" class="nav-link active">
                     <i class="fas fa-chart-bar"></i>
                     <span>Statistiques</span>
                 </a>
@@ -44,38 +37,26 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Header -->
         <header class="header">
-            <h1 class="page-title">Tableau de bord</h1>
+            <h1 class="page-title">Statistiques</h1>
             <div class="user-section">
                 <div class="user-info">
                     <i class="fas fa-user"></i>
-                    <span>
-                            {% if user and user.is_authenticated %}
-                                    {{ user.get_full_name|default:user.username }}
-                            {% else %}
-                                    Utilisateur Demo
-                            {% endif %}
-                    </span>
+                    <span>Utilisateur Demo</span>
                 </div>
-                <button class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Déconnexion</span>
-                </button>
             </div>
         </header>
 
-        <!-- Content -->
         <div class="content">
             <div class="container">
-                <!-- Stats Cards avec données dynamiques -->
+                <!-- Stats principales (simples) -->
                 <section class="stats-section">
                     <div class="stat-card">
                         <div class="stat-icon primary">
                             <i class="fas fa-chart-line"></i>
                         </div>
                         <h3 class="stat-number">{{ total_analyses }}</h3>
-                        <p class="stat-label">Analyses effectuées</p>
+                        <p class="stat-label">Analyses totales</p>
                     </div>
                     
                     <div class="stat-card">
@@ -90,41 +71,16 @@
                         <div class="stat-icon accent">
                             <i class="fas fa-shield-check"></i>
                         </div>
-                        <h3 class="stat-number accent">Actif</h3>
-                        <p class="stat-label">Statut du compte</p>
+                        <h3 class="stat-number accent">{{ simple_stats.reliable_content }}%</h3>
+                        <p class="stat-label">Contenu fiable</p>
                     </div>
                 </section>
 
-                <!-- Actions and Analytics -->
+                <!-- Types d'analyses -->
                 <section class="actions-analytics">
-                    <!-- Quick Actions -->
-                    <div class="actions-card">
-                        <div class="card-header gradient-header">
-                            <h4>Actions rapides</h4>
-                            <p class="header-subtitle">Accédez rapidement aux fonctionnalités principales</p>
-                        </div>
-                        <div class="card-body">
-                            <div class="quick-actions">
-                                <a href="{% url 'analyzer' %}" class="action-btn primary">
-                                    <i class="fas fa-file-text"></i>
-                                    <span>Analyser un texte</span>
-                                </a>
-                                <a href="{% url 'analyzer' %}" class="action-btn secondary">
-                                    <i class="fas fa-link"></i>
-                                    <span>Vérifier un lien</span>
-                                </a>
-                                <a href="{% url 'analyzer' %}" class="action-btn accent">
-                                    <i class="fas fa-image"></i>
-                                    <span>Analyser une image</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Analytics avec données dynamiques -->
                     <div class="analytics-card">
                         <div class="card-header">
-                            <h5>Types d'analyses</h5>
+                            <h5>Répartition par type</h5>
                         </div>
                         <div class="card-body">
                             <div class="progress-item">
@@ -158,24 +114,24 @@
                             </div>
                         </div>
                     </div>
-                </section>
 
-                <!-- Suggestions avec boucle Django -->
-                <section class="suggestions-section">
-                    <div class="suggestions-card">
-                        <div class="card-header gradient-header">
-                            <h4>Suggestions d'articles à vérifier</h4>
-                            <p class="header-subtitle">Basé sur vos préférences et l'actualité</p>
+                    <!-- Info système simple -->
+                    <div class="analytics-card">
+                        <div class="card-header">
+                            <h5>Informations</h5>
                         </div>
                         <div class="card-body">
-                            <div class="suggestions-grid">
-                                {% for suggestion in suggestions %}
-                                <div class="suggestion-item">
-                                    <span class="suggestion-badge">{{ suggestion.get_category_display }}</span>
-                                    <h6 class="suggestion-title">{{ suggestion.title }}</h6>
-                                    <p class="suggestion-description">{{ suggestion.description }}</p>
-                                </div>
-                                {% endfor %}
+                            <div class="info-item">
+                                <span class="info-label">Analyses aujourd'hui</span>
+                                <span class="info-value">{{ simple_stats.analyses_today }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Modèle IA</span>
+                                <span class="info-value">{{ simple_stats.ai_model }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Dernière analyse</span>
+                                <span class="info-value">{{ simple_stats.last_analysis }}</span>
                             </div>
                         </div>
                     </div>
@@ -184,7 +140,4 @@
         </div>
     </main>
 </div>
-
-<script src="{% static 'dashboard/js/dashboard.js' %}"></script>
 {% endblock %}
-
