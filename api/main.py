@@ -3,7 +3,7 @@
 # Pour lancer l'application : 
 # ouvrir terminal puis uvicorn api.main:api --reload
 
-from fastapi import APIRouter
+from fastapi import APIRouter, FastAPI
 from api.routes.recommandations import router as recommandations_router
 
 api = FastAPI()

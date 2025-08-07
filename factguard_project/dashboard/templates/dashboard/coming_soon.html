@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page }} - FactGuard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center">
+        <h1>{{ page }}</h1>
+        <h2>Cette section est en cours de développement ...</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">Retour au tableau de bord</a>
+    </div>
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@ anyio==4.10.0
 asgiref==3.9.1
 certifi==2025.8.3
 charset-normalizer==3.4.2
+click==8.2.1
 Django==5.2.4
 dotenv==0.9.9
 fastapi==0.116.1
@@ -26,3 +27,4 @@ typing-inspection==0.4.1
 typing_extensions==4.14.1
 tzdata==2025.2
 urllib3==2.5.0
+uvicorn==0.35.0
