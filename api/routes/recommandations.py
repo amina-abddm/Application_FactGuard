@@ -2,15 +2,42 @@
 # python -m api.route.recommandations
 
 from fastapi import APIRouter, Query
-from api.model.news_api import get_all_articles_by_theme
+from api.model.news_api import fetch_articles, get_all_articles_by_theme
 
 router = APIRouter()
 
-@router.get("/news/themes")
-async def get_articles_grouped_by_theme():
-    data = await get_all_articles_by_theme()
-    return data
+@router.get("/news/by-theme")
+async def get_articles_by_theme(
+    theme: str = Query(..., description="Nom du thème à rechercher")
+):
+    try:
+        articles = await fetch_articles(theme)
 
+        response = {
+            "status": "success",
+            "theme": theme,
+            "articles": [
+                {
+                    "title": article["title"],
+                    "published_at": article["published_at"],
+                    "summary": article.get("summary", ""),
+                    "url": article["url"]
+                }
+                for article in articles
+            ]
+        }
+
+        return response
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "theme": theme,
+            "articles": [],
+            "message": f"Une erreur est survenue : {str(e)}"
+        }
+        
+        
 # (Préparé pour l’avenir)
 @router.get("/news/by-theme")
 async def get_articles_for_one_theme(theme: str = Query(..., description="Nom du thème")):
