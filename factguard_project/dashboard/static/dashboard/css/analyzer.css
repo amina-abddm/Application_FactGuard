@@ -82,7 +82,7 @@ body {
 /* Sidebar - Reproduit votre design exact */
 .sidebar {
     width: 16rem;
-    background: linear-gradient(180deg, var(--primary-50), var(--primary-100));
+    background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
     border-right: 2px solid var(--primary-200);
     box-shadow: var(--shadow-lg);
     position: fixed;
