@@ -8,11 +8,13 @@ from django.http import HttpResponse
 import sys
 print("PYTHONPATH :", sys.path)  # Affiche les chemins recherchés
 
+
+
 def dashboard_view(request):
-    """
+        """
     Redirection vers analyzer - point d'entrée principal FactGuard
     """
-    return redirect('analyzer')  #
+        return redirect('analyzer')
 
 
 def analyzer_view(request):
@@ -20,23 +22,26 @@ def analyzer_view(request):
     error_message = None
 
     if request.method == 'POST':
-        content = request.POST.get('text_to_analyze', '')
+        content_type = request.POST.get('content_type', 'text')  # text ou link
+        if content_type == 'text':
+            content = request.POST.get('text_to_analyze', '')
+        elif content_type == 'link':
+            content = request.POST.get('content', '')
+        else:                     # image ignorée pour le moment
+            content = ''
+
         if content:
             try:
-                service = AzureOpenAIService()  # Initialisation ici
-                messages = [
-                    {"role": "system", "content": "Analyse d'information pour FactGuard."},
-                    {"role": "user", "content": content}
-                ]
-                response = service.chat_completion(messages)
-                analysis_result = response.choices[0].message.content
+                service = AzureOpenAIService()
+                analysis_result = service.analyze_content(content, content_type=content_type)
             except Exception as e:
-                error_message = str(e)
+                error_message = f"Erreur lors de l'analyse : {e}"
 
-    return render(request, 'dashboard/analyzer.html', {
-        'analysis_result': analysis_result,
-        'error_message': error_message
-    })
+    return render(
+        request,
+        'dashboard/analyzer.html',
+        {'analysis_result': analysis_result, 'error_message': error_message}
+    )
 
 
 def history_view(request):
