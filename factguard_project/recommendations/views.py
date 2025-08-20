@@ -2,6 +2,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from .models import Article, Theme
+from .utils import articles_by_theme
+
 
 
 """Créer les thèmes par défaut"""
@@ -87,15 +89,19 @@ def recommendations(request):
     return render(request, "recommendations/recommendations.html", context)
 
 
-
 def theme_articles(request, theme_name):
     """Articles d'un thème spécifique"""
+    # Récupérer le thème actif
     theme = get_object_or_404(Theme, name=theme_name, is_active=True)
-    articles = Article.objects.filter(theme=theme_name, is_active=True)[:6]
+    
+    # Crée des articles d’exemple si nécessaire
+    articles = articles_by_theme(theme_name, limit=6) # Limite à 6 articles
+    
+    # Récupère les articles du thème
+    articles = Article.objects.filter(theme=theme_name, is_active=True)[:6]  # Limite à 6 articles
     
     context = {
         'theme': theme,
         'articles': articles,
     }
     return render(request, 'recommendations/theme_articles.html', context)
-
