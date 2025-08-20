@@ -46,9 +46,10 @@
                         <i class="fas fa-calendar"></i>
                         <span>{{ article.created_at|date:"d/m/Y" }}</span>
                     </div>
-                    <button class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r {{ theme.gradient }} text-white text-sm font-medium rounded-md hover:opacity-90 transition-opacity">
+                    <a href="{{ article.url }}" target="_blank" 
+                        class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r {{ theme.gradient }} text-white text-sm font-medium rounded-md hover:opacity-90 transition-opacity">
                         Lire
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

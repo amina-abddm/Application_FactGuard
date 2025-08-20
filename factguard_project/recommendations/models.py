@@ -3,15 +3,15 @@ from django.db import models
 # Create your models here.
 
 class Article(models.Model):
-    THEMES = [
-        ('politique', 'Politique'),
+    THEMES =  [
+        ('politics', 'Politique'),
         ('finance', 'Finance'),
-        ('sport', 'Sport'),
-        ('technologie', 'Technologie'),
+        ('sports', 'Sport'),
+        ('technology', 'Technologie'),
         ('science', 'Science'),
         ('culture', 'Culture'),
-        ('international', 'International'),
-        ('sante', 'Santé'),
+        ('world', 'International'),
+        ('health', 'Santé'),
     ]
     
     title = models.CharField(max_length=200)
