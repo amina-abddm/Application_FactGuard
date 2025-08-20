@@ -1,26 +1,26 @@
 {% extends 'base.html' %}
-{% load static %} 
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'dashboard/css/analyzer.css' %}">
-{% endblock %}
+{% load static %}
 
 {% block title %}Analyseur - FactGuard{% endblock %}
 
-{% block content %}
-<div class="d-flex" style="min-height: 100vh;">
-    <!-- Sidebar -->
-    <div class="sidebar" style="width: 16rem;">
-        <div class="p-4">
-            <div class="d-flex align-items-center mb-5">
-                <div class="p-2 me-3" style="background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)); border-radius: 0.75rem;">
-                    <i class="fas fa-shield-alt text-white"></i>
-                </div>
-                <span class="fs-3 fw-bold" style="background: linear-gradient(135deg, var(--primary-600), var(--secondary-600)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    FactGuard
-                </span>
-            </div>
+{% block page_title %}Analyseur de contenu{% endblock %}
 
+{% block content %}
+    <!-- Sélection du type de contenu -->
+    <div class="grid grid-cols-3 gap-4">
+        <button type="button" data-type="text" class="content-type-btn border-2 border-teal-300 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-teal-50 transition-all duration-200 group">
+            <i class="fas fa-file-alt text-3xl mb-3 text-teal-600 group-hover:text-teal-700"></i>
+            <span class="font-semibold text-teal-700">Texte</span>
+        </button>
+        <button type="button" data-type="link" class="content-type-btn border-2 border-teal-300 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-teal-50 transition-all duration-200 group">
+            <i class="fas fa-link text-3xl mb-3 text-teal-500 group-hover:text-teal-600"></i>
+            <span class="font-semibold text-teal-600">Lien</span>
+        </button>
+        <button type="button" data-type="image" class="content-type-btn border-2 border-teal-300 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-teal-50 transition-all duration-200 group">
+            <i class="fas fa-image text-3xl mb-3 text-teal-400 group-hover:text-teal-500"></i>
+            <span class="font-semibold text-teal-500">Image</span>
+        </button>
+    </div>
             <nav>
                 <a href="{% url 'analyzer' %}" class="nav-link-custom active">
                     <i class="fas fa-search me-3"></i>
@@ -30,133 +30,118 @@
                     <i class="fas fa-history me-3"></i>
                     Historique
                 </a>
+                <a href="{% url 'recommendations:recommendations' %}" class="nav-link-custom">
+                    <i class="fas fa-lightbulb me-3"></i>
+                    Recommandations
+                </a>
+            
                 <a href="{% url 'statistics' %}" class="nav-link-custom">
                     <i class="fas fa-chart-bar me-3"></i>
                     Statistiques
                 </a>
             </nav>
+
+    <!-- Formulaire d'analyse -->
+    <form id="analysis-form" method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-lg p-6 space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="content_type" id="content_type" value="text">
+
+        <!-- Input Texte -->
+        <div id="text-input" class="input-section">
+            <textarea name="text_to_analyze" placeholder="Collez ici le texte à analyser..." rows="6"
+                class="w-full p-4 border-2 border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-vertical"></textarea>
         </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="flex-fill d-flex flex-column">
-        <!-- Header -->
-        <header style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(27, 66, 66, 0.1); border-bottom: 2px solid var(--primary-100);">
-            <div class="px-4 py-3 d-flex justify-content-between align-items-center">
-                <h1 class="h3 fw-semibold mb-0" style="color: var(--primary-700);">Analyseur de contenu</h1>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="d-flex align-items-center px-3 py-2" style="background: var(--primary-50); border-radius: 0.75rem;">
-                        <i class="fas fa-user me-2" style="color: var(--primary-600);"></i>
-                        <span class="fw-medium" style="color: var(--primary-700);">{{ user.get_full_name|default:user.username|default:'Utilisateur Demo' }}</span>
-                    </div>
-                </div>
+        <!-- Input Lien -->
+        <div id="link-input" class="input-section hidden">
+            <input type="url" name="content" placeholder="https://example.com/article"
+                class="w-full p-4 border-2 border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+
+        </div>
+
+        <!-- Input Image -->
+        <div id="image-input" class="input-section hidden">
+            <div class="border-2 border-dashed border-teal-300 rounded-lg p-8 text-center bg-teal-50 hover:bg-teal-100 transition-colors">
+                <label for="image-upload" class="cursor-pointer flex flex-col items-center justify-center text-teal-700">
+                    <i class="fas fa-image text-5xl mb-3 text-teal-500"></i>
+                    <span class="text-lg font-medium">Sélectionnez une image ou glissez-déposez ici</span>
+                </label>
+                <input id="image-upload" type="file" name="image" accept="image/*" class="hidden">
             </div>
-        </header>
+        </div>
 
-        <!-- Content -->
-        <main class="flex-fill p-4">
-            <div class="container-fluid">
-                <!-- Input Type Selection -->
-                <div class="card card-custom mb-4">
-                    <div class="card-header text-white" style="background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)); border-radius: 1rem 1rem 0 0;">
-                        <h4 class="mb-1">Type de contenu à analyser</h4>
-                        <p class="mb-0 small" style="color: var(--primary-100);">Choisissez le type de contenu que vous souhaitez vérifier</p>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-outline-primary w-100 h-100 content-type-btn active" data-type="text" style="min-height: 6rem; border: 2px solid var(--primary-200);">
-                                    <div class="d-flex flex-column align-items-center justify-content-center py-3">
-                                        <i class="fas fa-file-text fa-2x mb-3" style="color: var(--primary-500);"></i>
-                                        <span class="fw-medium">Texte</span>
-                                    </div>
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-outline-secondary w-100 h-100 content-type-btn" data-type="link" style="min-height: 6rem; border: 2px solid var(--primary-200);">
-                                    <div class="d-flex flex-column align-items-center justify-content-center py-3">
-                                        <i class="fas fa-link fa-2x mb-3" style="color: var(--secondary-500);"></i>
-                                        <span class="fw-medium">Lien</span>
-                                    </div>
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-outline-info w-100 h-100 content-type-btn" data-type="image" style="min-height: 6rem; border: 2px solid var(--primary-200);">
-                                    <div class="d-flex flex-column align-items-center justify-content-center py-3">
-                                        <i class="fas fa-image fa-2x mb-3" style="color: var(--accent-500);"></i>
-                                        <span class="fw-medium">Image</span>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Bouton d'analyse -->
+        <button type="submit" class="w-full flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold text-lg rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <i class="fas fa-bolt"></i>
+            Analyser
+        </button>
+    </form>
 
-                <!-- Input Area -->
-                <div class="card card-custom mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0" style="color: var(--primary-700);" id="input-title">Saisir le texte</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="analysis-form" method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <input type="hidden" name="content_type" id="content_type" value="text">
-                            
-                            <!-- Text Input -->
-                            <div id="text-input" class="input-section">
-                                <textarea name="content" class="form-control" placeholder="Collez ici le texte à analyser..." rows="6"></textarea>
-                            </div>
-                            
-                            <!-- Link Input -->
-                            <div id="link-input" class="input-section d-none">
-                                <input type="url" name="content" class="form-control" placeholder="https://example.com/article">
-                            </div>
-                            
-                            <!-- Image Input -->
-                            <div id="image-input" class="input-section d-none">
-                                <div class="border-2 border-dashed rounded-3 p-5 text-center" style="border-color: var(--primary-300) !important; background: var(--primary-25);">
-                                    <i class="fas fa-image fa-4x mb-3" style="color: var(--primary-400);"></i>
-                                    <p class="fw-medium mb-3" style="color: var(--primary-600);">
-                                        Glissez-déposez une image ou cliquez pour sélectionner
-                                    </p>
-                                    <input type="file" name="image" class="form-control" accept="image/*">
-                                </div>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary-custom w-100 mt-4">
-                                <i class="fas fa-bolt me-2"></i>
-                                Analyser
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Results -->
-                <div id="results-card" class="card card-custom d-none">
-                    <div class="card-header">
-                        <h5 class="mb-0 d-flex align-items-center" style="color: var(--primary-700);">
-                            <i id="result-icon" class="me-2"></i>
-                            Résultat de l'analyse
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-medium" style="color: var(--primary-600);">Score de fiabilité</span>
-                                <span id="score-display" class="display-6 fw-bold" style="color: var(--primary-700);"></span>
-                            </div>
-                            <div class="progress progress-custom">
-                                <div id="score-progress" class="progress-bar progress-bar-custom"></div>
-                            </div>
-                        </div>
-                        <div id="result-message" class="p-4 rounded-3" style="background: var(--primary-50);"></div>
-                    </div>
-                </div>
+    <!-- Résultats de l'analyse -->
+    {% if analysis_result %}
+        <section class="bg-white rounded-xl shadow-lg p-6 mt-6">
+            <h2 class="text-2xl font-semibold mb-4 text-teal-800 flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                Résultat de l'analyse
+            </h2>
+            <div class="space-y-3 text-gray-700">
+                <pre class="whitespace-pre-wrap">{{ analysis_result }}</pre>
             </div>
-        </main>
-    </div>
-</div>
+        </section>
+    {% endif %}
+
+    <!-- Messages d'erreur -->
+    {% if error_message %}
+        <section class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                <p class="text-red-700 font-semibold">{{ error_message }}</p>
+            </div>
+        </section>
+    {% endif %}
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const buttons = document.querySelectorAll('.content-type-btn');
+        const contentTypeInput = document.getElementById('content_type');
+        const inputs = {
+            text: document.getElementById('text-input'),
+            link: document.getElementById('link-input'),
+            image: document.getElementById('image-input')
+        };
 
+        // Style pour bouton actif
+        function setActiveButton(activeBtn) {
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+                btn.classList.add('border-teal-300');
+            });
+            activeBtn.classList.add('bg-teal-600', 'text-white', 'border-teal-600');
+            activeBtn.classList.remove('border-teal-300');
+        }
 
+        // Set default active button (text)
+        setActiveButton(document.querySelector('[data-type="text"]'));
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                setActiveButton(button);
+
+                const type = button.getAttribute('data-type');
+                contentTypeInput.value = type;
+
+                // Affiche/cache les inputs correspondants
+                Object.keys(inputs).forEach(key => {
+                    if (key === type) {
+                        inputs[key].classList.remove('hidden');
+                    } else {
+                        inputs[key].classList.add('hidden');
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

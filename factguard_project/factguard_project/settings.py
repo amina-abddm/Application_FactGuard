@@ -12,6 +12,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+
+
+
+
+import sys
+from pathlib import Path
+
+# ➜  remonte de 3 niveaux pour pointer sur Application_FactGuard
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
+print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affichera au lancement
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home',  
     'dashboard',
+    'recommendations',
 ]
 
 MIDDLEWARE = [
@@ -128,6 +145,8 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 # Redirections après login / logout
 LOGIN_REDIRECT_URL = "dashboard:analyzer"
 LOGOUT_REDIRECT_URL = "home:index"
+

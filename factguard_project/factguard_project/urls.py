@@ -20,8 +20,14 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
     path("", include("home.urls")),                     # accueil
     path("dashboard/", include("dashboard.urls")),      # pages protégées
     path("accounts/", include("django.contrib.auth.urls")),  # login/logout/password reset
     path("accounts/", include("home.urls_auth")),       # signup custom
 ]
+
+    path("dashboard/", include("dashboard.urls")),
+    path("recommendations/", include("recommendations.urls")),
+]
+

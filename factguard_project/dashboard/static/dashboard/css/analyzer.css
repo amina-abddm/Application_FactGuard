@@ -1,3 +1,4 @@
+
 /* Variables CSS pour FactGuard */
 :root {
     --primary-25: #f8fafc;
@@ -771,3 +772,4 @@ main.flex-fill {
     font-weight: 600;
     color: var(--primary-700);
 }
+
