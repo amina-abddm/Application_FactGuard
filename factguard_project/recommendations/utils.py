@@ -5,7 +5,8 @@ from decouple import config
 API_KEY = config('NEWS_API_KEY')
 BASE_URL = "https://newsapi.org/v2/everything"
 
-# Récupère des articles depuis l'API News par thème
+
+# 🔹 Récupère des articles depuis l'API News par thème
 def get_articles_from_api(theme_name, limit=6):
     """Récupère des articles depuis l'API News par thème."""
     params = {
@@ -16,44 +17,53 @@ def get_articles_from_api(theme_name, limit=6):
         'sortBy': 'publishedAt'
     }
     response = requests.get(BASE_URL, params=params)
-    
+
     if response.status_code != 200:
         return []
-    
+
     data = response.json()
     articles = []
     for item in data.get('articles', []):
+        title = item.get('title')
+        if not title:  # ⚠️ On ignore les articles sans titre
+            continue
+
         article_data = {
-            'title': item.get('title'),
+            'title': title,
             'summary': item.get('description') or "",
             'theme': theme_name,
             'read_time': "5 min",
-            'url': item.get('url')
+            'url': item.get('url') or ""
         }
         articles.append(article_data)
     return articles
 
-# Récupère les articles actifs d'un thème, ou crée-les via l'API si nécessaire
+
+# 🔹 Récupère et enregistre les articles pour un thème donné
 def articles_by_theme(theme_name, limit=6):
     """
-    Récupère les articles actifs d'un thème.  
-    S'il n'y en a pas en base, crée des articles via l'API News.
+    Récupère systématiquement les articles d’un thème via l’API News.
+    Les articles sont créés/MAJ en base à chaque appel.
     """
-    # Vérifie les articles existants
-    existing_articles = Article.objects.filter(theme=theme_name, is_active=True)[:limit]
-    
-    if existing_articles.exists():
-        return existing_articles
-    
-    # Sinon, récupère depuis l'API
+
+    # (Optionnel) Désactiver les anciens articles de ce thème
+    Article.objects.filter(theme=theme_name).update(is_active=False)
+
+    # Récupère depuis l'API News
     api_articles = get_articles_from_api(theme_name, limit)
-    
+
     created_articles = []
     for a in api_articles:
-        article, created = Article.objects.get_or_create(
-            title=a['title'],
-            defaults=a
+        article, _ = Article.objects.update_or_create(
+            title=a['title'],  # clé d’unicité
+            defaults={
+                'summary': a['summary'],
+                'theme': theme_name,
+                'read_time': a['read_time'],
+                'url': a['url'],
+                'is_active': True
+            }
         )
         created_articles.append(article)
-    
+
     return created_articles
