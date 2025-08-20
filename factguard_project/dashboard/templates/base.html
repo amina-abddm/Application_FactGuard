@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>{% block title %}FactGuard{% endblock %}</title>
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 
   {% load static %}
   <!-- CSS global du site -->
@@ -14,20 +15,6 @@
 
   <!-- CSS spécifique à la page (ex: auth.css) -->
   {% block extra_css %}{% endblock %}
-</head>
-<body>
-  {% block content %}{% endblock %}
-  {% block extra_js %}{% endblock %}
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}FactGuard{% endblock %}</title>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    {% load static %}
-    {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="flex min-h-screen">
@@ -68,8 +55,7 @@
 
             <!-- Page Content -->
             <section class="px-8 py-6 flex flex-col gap-6 flex-grow overflow-auto">
-                {% block content %}
-                {% endblock %}
+                {% block content %}{% endblock %}
             </section>
         </main>
     </div>
