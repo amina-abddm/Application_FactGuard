@@ -1,0 +1,42 @@
+{% extends 'recommendations/base.html' %}
+{% load static %}
+
+{% block title %}Recommandations - FactGuard{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-primary-700 mb-4">Choisissez votre thématique</h2>
+        <p class="text-lg text-secondary-600">
+            Découvrez les articles vérifiés de la semaine dans vos domaines d'intérêt
+        </p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {% for theme in themes %}
+        <div class="cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 border-transparent hover:border-primary-200 bg-white rounded-lg shadow-md"
+             onclick="window.location.href='{% url 'recommendations:theme_articles' theme.name %}'">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r {{ theme.gradient }} flex items-center justify-center shadow-lg">
+                    <i class="fas fa-{{ theme.icon_name|lower }} h-8 w-8 text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-primary-700 mb-2">{{ theme.display_name }}</h3>
+                <div class="text-3xl mb-2">{{ theme.emoji }}</div>
+                <p class="text-sm text-secondary-600">Consulter</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.from-blue-500 { background: linear-gradient(to right, #3b82f6, #4f46e5); }
+.from-green-500 { background: linear-gradient(to right, #10b981, #059669); }
+.from-orange-500 { background: linear-gradient(to right, #f97316, #dc2626); }
+.from-purple-500 { background: linear-gradient(to right, #8b5cf6, #7c3aed); }
+.from-cyan-500 { background: linear-gradient(to right, #06b6d4, #2563eb); }
+.from-pink-500 { background: linear-gradient(to right, #ec4899, #f43f5e); }
+.from-teal-500 { background: linear-gradient(to right, #14b8a6, #06b6d4); }
+.from-red-500 { background: linear-gradient(to right, #ef4444, #ec4899); }
+</style>
+{% endblock %}

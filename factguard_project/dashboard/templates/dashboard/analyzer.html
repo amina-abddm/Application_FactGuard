@@ -21,6 +21,25 @@
             <span class="font-semibold text-teal-500">Image</span>
         </button>
     </div>
+            <nav>
+                <a href="{% url 'analyzer' %}" class="nav-link-custom active">
+                    <i class="fas fa-search me-3"></i>
+                    Analyseur
+                </a>
+                <a href="{% url 'history' %}" class="nav-link-custom">
+                    <i class="fas fa-history me-3"></i>
+                    Historique
+                </a>
+                <a href="{% url 'recommendations:recommendations' %}" class="nav-link-custom">
+                    <i class="fas fa-lightbulb me-3"></i>
+                    Recommandations
+                </a>
+            
+                <a href="{% url 'statistics' %}" class="nav-link-custom">
+                    <i class="fas fa-chart-bar me-3"></i>
+                    Statistiques
+                </a>
+            </nav>
 
     <!-- Formulaire d'analyse -->
     <form id="analysis-form" method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-lg p-6 space-y-4">
@@ -37,6 +56,7 @@
         <div id="link-input" class="input-section hidden">
             <input type="url" name="content" placeholder="https://example.com/article"
                 class="w-full p-4 border-2 border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+
         </div>
 
         <!-- Input Image -->
