@@ -48,7 +48,7 @@ def history_view(request):
     """
     Page historique - En développement
     """
-    return render(request, 'dashboard/coming_soon.html', {'page': 'Historique'})
+    return render(request, 'dashboard/historical.html', {'page': 'Historique'})
 
 
 def statistics_view(request):
