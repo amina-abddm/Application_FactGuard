@@ -17,19 +17,29 @@ from pathlib import Path
 
 
 import sys
+import os
 from pathlib import Path
+from dotenv import load_dotenv 
 
 # ➜  remonte de 3 niveaux pour pointer sur Application_FactGuard
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-
 print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affichera au lancement
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 🔧 NOUVEAU : Chargement .env depuis azure/
+env_path = PROJECT_ROOT / 'azure' / '.env'
+load_dotenv(env_path)
+
+# Debug multi-plateforme
+print(f"OS: {os.name}")
+print(f"Chemin .env: {env_path}")
+print(f"Existe: {'OUI' if env_path.exists() else 'NON'}")
+
 
 
 # Quick-start development settings - unsuitable for production
