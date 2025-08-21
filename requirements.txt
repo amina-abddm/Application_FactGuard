@@ -17,6 +17,7 @@ fastapi==0.116.1
 filelock==3.19.1
 fsspec==2025.7.0
 h11==0.16.0
+hf-xet==1.1.8
 httpcore==1.0.9
 httpx==0.28.1
 huggingface-hub==0.34.4
@@ -33,13 +34,14 @@ numpy==2.3.2
 openai==1.100.1
 optional-django==0.1.0
 packaging==25.0
+pandas==2.3.1
 pydantic==2.11.7
 pydantic_core==2.33.2
 Pygments==2.19.2
 python-dateutil==2.9.0.post0
-python-decouple==3.8
 python-dotenv==1.1.1
 python-slugify==8.0.4
+pytz==2025.2
 PyYAML==6.0.2
 regex==2025.7.34
 requests==2.32.4
@@ -62,3 +64,5 @@ typing_extensions==4.14.1
 tzdata==2025.2
 urllib3==2.5.0
 uvicorn==0.35.0
+python-decouple==3.8
+
