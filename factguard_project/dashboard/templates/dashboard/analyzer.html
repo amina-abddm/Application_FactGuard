@@ -21,25 +21,7 @@
             <span class="font-semibold text-teal-500">Image</span>
         </button>
     </div>
-            <nav>
-                <a href="{% url 'dashboard:analyzer' %}" class="nav-link-custom active">
-                    <i class="fas fa-search me-3"></i>
-                    Analyseur
-                </a>
-                <a href="{% url 'dashboard:history' %}" class="nav-link-custom">
-                    <i class="fas fa-history me-3"></i>
-                    Historique
-                </a>
-                <a href="{% url 'recommendations:recommendations' %}" class="nav-link-custom">
-                    <i class="fas fa-lightbulb me-3"></i>
-                    Recommandations
-                </a>
-            
-                <a href="{% url 'dashboard:statistics' %}" class="nav-link-custom">
-                    <i class="fas fa-chart-bar me-3"></i>
-                    Statistiques
-                </a>
-            </nav>
+ 
 
     <!-- Formulaire d'analyse -->
     <form id="analysis-form" method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-lg p-6 space-y-4">
