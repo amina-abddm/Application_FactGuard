@@ -9,14 +9,14 @@ import sys
 print("PYTHONPATH :", sys.path)  # Affiche les chemins recherchés
 
 
-
+@login_required
 def dashboard_view(request):
         """
     Redirection vers analyzer - point d'entrée principal FactGuard
     """
         return redirect('analyzer')
 
-
+@login_required
 def analyzer_view(request):
     analysis_result = None
     error_message = None
@@ -43,14 +43,14 @@ def analyzer_view(request):
         {'analysis_result': analysis_result, 'error_message': error_message}
     )
 
-
+@login_required
 def history_view(request):
     """
     Page historique - En développement
     """
     return render(request, 'dashboard/historical.html', {'page': 'Historique'})
 
-
+@login_required
 def statistics_view(request):
     """
     Page statistiques simplifiée - FactGuard Sprint 1
