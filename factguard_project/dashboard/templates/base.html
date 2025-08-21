@@ -37,12 +37,15 @@
            class="rounded-lg px-3 py-2 flex items-center hover:bg-teal-800 {% if request.resolver_match.url_name == 'analyzer' %}bg-teal-700 text-white font-semibold{% endif %}">
           <i class="fas fa-search mr-2"></i>Analyseur
         </a>
-
         <a href="{% url 'dashboard:history' %}"
            class="rounded-lg px-3 py-2 flex items-center hover:bg-teal-800 {% if request.resolver_match.url_name == 'history' %}bg-teal-700 text-white font-semibold{% endif %}">
           <i class="fas fa-history mr-2"></i>Historique
         </a>
-
+        <a href="{% url 'recommendations:recommendations' %}"
+          class="rounded-lg px-3 py-2 flex items-center hover:bg-teal-800 {% if request.resolver_match.url_name == 'history' %}bg-teal-700 text-white font-semibold{% endif %}">
+          <i class="fas fa-lightbulb me-3">Recommandations</i>
+                    
+        </a>
         <a href="{% url 'dashboard:statistics' %}"
            class="rounded-lg px-3 py-2 flex items-center hover:bg-teal-800 {% if request.resolver_match.url_name == 'statistics' %}bg-teal-700 text-white font-semibold{% endif %}">
           <i class="fas fa-chart-bar mr-2"></i>Statistiques
