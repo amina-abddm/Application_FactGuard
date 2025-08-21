@@ -2,7 +2,7 @@ from .models import Article
 import requests
 from decouple import config
 
-API_KEY = config('NEWS_API_KEY')
+API_KEY = config('NEWS_API_KEY', default='FAKE_KEY')
 BASE_URL = "https://newsapi.org/v2/everything"
 
 
