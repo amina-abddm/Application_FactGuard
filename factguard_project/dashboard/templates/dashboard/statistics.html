@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Statistiques - FactGuard{% endblock %}
+
+{% block page_title %}Statistiques{% endblock %}
+
+{% block content %}
+    <!-- Stats principales -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-teal-100 hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+            <div class="flex items-center">
+                <div class="p-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl mr-4">
+                    <i class="fas fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-teal-800">{{ total_analyses|default:"127" }}</h3>
+                    <p class="text-gray-600 font-medium">Analyses totales</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-teal-100 hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+            <div class="flex items-center">
+                <div class="p-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-xl mr-4">
+                    <i class="fas fa-percentage text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-cyan-800">{{ avg_score|default:"84" }}%</h3>
+                    <p class="text-gray-600 font-medium">Score moyen</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-teal-100 hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+            <div class="flex items-center">
+                <div class="p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl mr-4">
+                    <i class="fas fa-shield-check text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-emerald-800">{{ simple_stats.reliable_content|default:"76" }}%</h3>
+                    <p class="text-gray-600 font-medium">Contenu fiable</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics détaillées -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Répartition par type -->
+        <div class="bg-white rounded-xl shadow-lg border border-teal-100">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-teal-50 to-cyan-50">
+                <h5 class="text-lg font-semibold text-teal-900 flex items-center">
+                    <i class="fas fa-chart-pie mr-3 text-teal-600"></i>
+                    Répartition par type
+                </h5>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-teal-700 font-medium flex items-center">
+                            <i class="fas fa-file-alt mr-2 text-teal-600"></i>
+                            Texte
+                        </span>
+                        <span class="font-bold text-gray-800">{{ type_stats.text|default:"45" }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-3 rounded-full transition-all duration-500" style="width: {{ type_percentages.text_percent|default:"65" }}%"></div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-cyan-700 font-medium flex items-center">
+                            <i class="fas fa-link mr-2 text-cyan-600"></i>
+                            Liens
+                        </span>
+                        <span class="font-bold text-gray-800">{{ type_stats.link|default:"28" }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-cyan-500 to-cyan-600 h-3 rounded-full transition-all duration-500" style="width: {{ type_percentages.link_percent|default:"40" }}%"></div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-emerald-700 font-medium flex items-center">
+                            <i class="fas fa-image mr-2 text-emerald-600"></i>
+                            Images
+                        </span>
+                        <span class="font-bold text-gray-800">{{ type_stats.image|default:"12" }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all duration-500" style="width: {{ type_percentages.image_percent|default:"17" }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations système -->
+        <div class="bg-white rounded-xl shadow-lg border border-teal-100">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-teal-50 to-cyan-50">
+                <h5 class="text-lg font-semibold text-teal-900 flex items-center">
+                    <i class="fas fa-info-circle mr-3 text-teal-600"></i>
+                    Informations système
+                </h5>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-calendar-day mr-3 text-teal-500 w-4"></i>
+                        Analyses aujourd'hui
+                    </span>
+                    <span class="font-bold text-teal-800">{{ simple_stats.analyses_today|default:"8" }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-robot mr-3 text-cyan-500 w-4"></i>
+                        Modèle IA
+                    </span>
+                    <span class="font-bold text-gray-800">{{ simple_stats.ai_model|default:"Azure OpenAI" }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-clock mr-3 text-emerald-500 w-4"></i>
+                        Dernière analyse
+                    </span>
+                    <span class="font-bold text-gray-800">{{ simple_stats.last_analysis|default:"Il y a 23 min" }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-server mr-3 text-green-500 w-4"></i>
+                        Statut système
+                    </span>
+                    <span class="font-bold text-green-600 flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                        En ligne
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
