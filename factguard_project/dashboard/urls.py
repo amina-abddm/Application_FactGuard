@@ -2,6 +2,8 @@ from django.urls import path, include
 from . import views
 from recommendations import urls as recommendations_urls
 
+app_name = "dashboard"
+
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path('analyzer/', views.analyzer_view, name='analyzer'),

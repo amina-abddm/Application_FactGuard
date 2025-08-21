@@ -22,11 +22,11 @@
         </button>
     </div>
             <nav>
-                <a href="{% url 'analyzer' %}" class="nav-link-custom active">
+                <a href="{% url 'dashboard:analyzer' %}" class="nav-link-custom active">
                     <i class="fas fa-search me-3"></i>
                     Analyseur
                 </a>
-                <a href="{% url 'history' %}" class="nav-link-custom">
+                <a href="{% url 'dashboard:history' %}" class="nav-link-custom">
                     <i class="fas fa-history me-3"></i>
                     Historique
                 </a>
@@ -35,7 +35,7 @@
                     Recommandations
                 </a>
             
-                <a href="{% url 'statistics' %}" class="nav-link-custom">
+                <a href="{% url 'dashboard:statistics' %}" class="nav-link-custom">
                     <i class="fas fa-chart-bar me-3"></i>
                     Statistiques
                 </a>
