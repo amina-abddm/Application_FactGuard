@@ -1,0 +1,198 @@
+/* ------------------ Reset / Base ------------------ */
+body {
+  background: #f9fafb;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* ------------------ Hero & Header ------------------ */
+.fg-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.fg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 1rem 1rem;
+  border-bottom: 1px solid #e5e7eb; /* fine bordure grise */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* petite ombre douce */
+}
+
+
+.fg-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.fg-shield {
+  font-size: 1.5rem;
+}
+
+/* ------------------ Card ------------------ */
+.fg-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  /*max-width: 420px;*/
+  width: 100%;
+  overflow: hidden; /* pour que le header arrondi marche */
+}
+
+/* ------------------ Card Header ------------------ */
+.fg-card-head {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.fg-card-head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.fg-card-head p {
+  margin-top: 0.25rem;
+  color: #6b7280
+  font-size: 0.95rem;
+}
+
+/* Variante avec dégradé */
+.fg-card-head.gradient {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)) !important;
+  color: #fff;
+}
+
+.fg-card-head.gradient h1,
+.fg-card-head.gradient p {
+  color: #fff;
+}
+
+/* ------------------ Form ------------------ */
+.fg-form {
+  padding: 1.5rem;
+}
+
+.fg-field {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-label {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.fg-form input {
+  padding: 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+/* ------------------ Buttons ------------------ */
+.fg-btn {
+  display: inline-block;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.fg-btn.primary {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)) !important;
+  color: white;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.fg-btn.primary:hover {
+  background: #1e40af;
+}
+
+.fg-btn.ghost {
+  background: transparent;
+  color: #020917;
+}
+
+.fg-btn.ghost:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* ------------------ Texts ------------------ */
+.fg-muted {
+  margin: 1rem 1.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.fg-muted a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.fg-muted a:hover {
+  text-decoration: underline;
+}
+
+/* ------------------ Alerts & Errors ------------------ */
+.fg-alert {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 1rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+.fg-error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* Pour afficher 2 champs sur la même ligne */
+/* Force prénom + nom côte à côte */
+.fg-grid-2 {
+  display: flex !important;
+  gap: 1rem;
+}
+
+.fg-grid-2 .fg-field {
+  flex: 1;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.icon {
+  height: 2rem;
+  width: 2rem;
+  color: rgba(255, 255, 255, 0.2)te;
+}   
