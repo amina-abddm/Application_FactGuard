@@ -1,0 +1,96 @@
+{% extends 'recommendations/base.html' %}
+{% load static %}
+
+{% block title %}{{ theme.display_name }} - Recommandations - FactGuard{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header with back button -->
+    <div class="bg-gradient-to-r {{ theme.gradient }} rounded-2xl p-6 mb-8 text-white">
+        <div class="flex items-center justify-between mb-4">
+            <a href="{% url 'recommendations:recommendations' %}" 
+                class="inline-flex items-center px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour aux recommandations
+            </a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-{{ theme.icon_name|lower }} text-white text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-bold">{{ theme.display_name }}</h2>
+                <p class="text-white/90">Articles de la semaine sélectionnés pour vous</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Articles grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for article in articles %}
+        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-200">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ theme.bg_color }} {{ theme.text_color }}">
+                        {{ theme.display_name }}
+                    </span>
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ article.read_time }}</span>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3 leading-tight">{{ article.title }}</h3>
+                <p class="text-gray-600 mb-4 text-sm leading-relaxed">{{ article.summary }}</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ article.created_at|date:"d/m/Y" }}</span>
+                    </div>
+                    <a href="{{ article.url }}" target="_blank" 
+                        class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r {{ theme.gradient }} text-white text-sm font-medium rounded-md hover:opacity-90 transition-opacity">
+                        Lire
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="text-gray-400 mb-4">
+                <i class="fas fa-newspaper text-6xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun article disponible</h3>
+            <p class="text-gray-600">Les articles pour ce thème seront bientôt disponibles.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.from-blue-500 { background: linear-gradient(to right, #3b82f6, #4f46e5); }
+.from-green-500 { background: linear-gradient(to right, #10b981, #059669); }
+.from-orange-500 { background: linear-gradient(to right, #f97316, #dc2626); }
+.from-purple-500 { background: linear-gradient(to right, #8b5cf6, #7c3aed); }
+.from-cyan-500 { background: linear-gradient(to right, #06b6d4, #2563eb); }
+.from-pink-500 { background: linear-gradient(to right, #ec4899, #f43f5e); }
+.from-teal-500 { background: linear-gradient(to right, #14b8a6, #06b6d4); }
+.from-red-500 { background: linear-gradient(to right, #ef4444, #ec4899); }
+
+.bg-primary-50 { background-color: #eff6ff; }
+.bg-green-50 { background-color: #f0fdf4; }
+.bg-orange-50 { background-color: #fff7ed; }
+.bg-purple-50 { background-color: #faf5ff; }
+.bg-cyan-50 { background-color: #ecfeff; }
+.bg-pink-50 { background-color: #fdf2f8; }
+.bg-teal-50 { background-color: #f0fdfa; }
+.bg-red-50 { background-color: #fef2f2; }
+
+.text-primary-700 { color: #1d4ed8; }
+.text-green-700 { color: #15803d; }
+.text-orange-700 { color: #c2410c; }
+.text-purple-700 { color: #6d28d9; }
+.text-cyan-700 { color: #0e7490; }
+.text-pink-700 { color: #be185d; }
+.text-teal-700 { color: #0f766e; }
+.text-red-700 { color: #b91c1c; }
+</style>
+{% endblock %}

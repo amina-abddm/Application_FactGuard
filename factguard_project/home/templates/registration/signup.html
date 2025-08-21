@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Inscription — FactGuard{% endblock %}
+
+{# on supprime sidebar + header du layout #}
+{% block sidebar %}{% endblock %}
+{% block header %}{% endblock %}
+{% block body_class %}bg-white font-sans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/auth.css' %}?v=43">
+{% endblock %}
+
+{% block content %}
+<header class="fg-header">
+  <div class="fg-brand">
+    <div class="logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <span class="fg-title">FactGuard</span>
+  </div>
+  <div class="fg-actions">
+    <a class="fg-btn ghost" href="{% url 'login' %}">Se connecter</a>
+  </div>
+</header>
+
+<div class="fg-hero">
+  <main class="fg-main">
+    <div class="fg-card">
+      <div class="fg-card-head gradient">
+        <h1>Créer votre compte</h1>
+        <p>Rejoignez FactGuard et personnalisez votre expérience de vérification d'informations</p>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="fg-alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form method="post" class="fg-form" action="{% url 'accounts:signup' %}">
+        {% csrf_token %}
+
+        <h3 class="fg-section-title">Informations personnelles</h3>
+        <div class="fg-grid-2">
+          <div class="fg-field">
+            <label class="fg-label" for="{{ form.first_name.id_for_label }}">Prénom</label>
+            {{ form.first_name }}
+            {% for e in form.first_name.errors %}<div class="fg-error">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="fg-field">
+            <label class="fg-label" for="{{ form.last_name.id_for_label }}">Nom</label>
+            {{ form.last_name }}
+            {% for e in form.last_name.errors %}<div class="fg-error">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="fg-field">
+          <label class="fg-label" for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% for e in form.email.errors %}<div class="fg-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="fg-field">
+          <label class="fg-label" for="{{ form.username.id_for_label }}">Nom d’utilisateur</label>
+          {{ form.username }}
+          {% for e in form.username.errors %}<div class="fg-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="fg-grid-2">
+          <div class="fg-field">
+            <label class="fg-label" for="{{ form.password1.id_for_label }}">Mot de passe</label>
+            {{ form.password1 }}
+            {% for e in form.password1.errors %}<div class="fg-error">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="fg-field">
+            <label class="fg-label" for="{{ form.password2.id_for_label }}">Confirmer le mot de passe</label>
+            {{ form.password2 }}
+            {% for e in form.password2.errors %}<div class="fg-error">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <button type="submit" class="fg-btn primary wide">Créer mon compte</button>
+        <p class="fg-muted">Déjà un compte ? <a href="{% url 'login' %}">Se connecter</a></p>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}

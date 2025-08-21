@@ -20,8 +20,8 @@
                     <span class="brand-name">FactGuard</span>
                 </div>
                 <div class="header-buttons">
-                    <button class="btn btn-ghost">Se connecter</button>
-                    <button class="btn btn-solid">S'inscrire</button>
+                    <a class="btn btn-ghost" href="{% url 'login' %}">Se connecter</a>
+                    <a class="btn btn-solid" href="{% url 'accounts:signup' %}">S'inscrire</a>
                 </div>
             </div>
         </div>
@@ -45,14 +45,14 @@
       </p>
 
       <div class="cta-buttons">
-        <button class="btn-primary">
-          Commencer maintenant
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon-small" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </button>
-        <button class="btn-outline">Voir la démo</button>
-      </div>
+  <a href="{% url 'accounts:signup' %}" class="btn-primary">
+    Commencer maintenant
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon-small" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  </a>
+</div>
+
 
       <div class="features">
         <div class="feature">

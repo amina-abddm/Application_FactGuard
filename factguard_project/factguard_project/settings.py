@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home',  
     'dashboard',
+    'recommendations',
 ]
 
 MIDDLEWARE = [
@@ -153,4 +154,9 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Redirections après login / logout
+LOGIN_REDIRECT_URL = "dashboard:analyzer"
+LOGOUT_REDIRECT_URL = "home:index"
 
