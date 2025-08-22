@@ -1,9 +1,24 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from azure.azure_openai import analyse_information as call_gpt_analysis
 from django.db import models
 from django.contrib import messages
 from .models import Analysis
+import re
+import sys
+
+# Imports avec gestion d'erreur
+try:
+    from api.services.azure_openai_service import AzureOpenAIService as AzureService
+    print("✅ AzureService importé avec succès")
+except ImportError as e:
+    print(f"❌ Erreur import AzureService: {e}")
+
+try:
+    from azure.azure_openai import analyse_information as call_gpt_analysis
+    print("✅ call_gpt_analysis importé avec succès")
+except ImportError as e:
+    print(f"❌ Erreur import call_gpt_analysis: {e}")
+
 import re
 import sys
 
@@ -16,39 +31,49 @@ def dashboard_view(request):
 
 @login_required
 def analyzer_view(request):
+    print(f"=== analyzer_view - Méthode: {request.method} ===")
+    
     if request.method == 'POST':
-        text = request.POST.get('text', '').strip()
+        text = request.POST.get('text_to_analyze', '').strip()  
+        print(f"Texte reçu: '{text}' (longueur: {len(text)})")
+        print(f"Données POST: {dict(request.POST)}")
         
         if not text or len(text) < 10:
             messages.error(request, "Le texte doit contenir au moins 10 caractères.")
             return render(request, 'dashboard/analyzer.html')
         
         try:
-            # Appel à Azure OpenAI GPT-4o
+            print("🔄 Appel call_gpt_analysis...")
             result = call_gpt_analysis(text)
+            print(f"✅ Résultat: {result}")
             
-            # Extraire le score de confiance
             confidence = extract_confidence_score(result)
+            print(f"📊 Confiance: {confidence}")
             
-            # Enregistrer l'analyse en base
+            # Enregistrement en base
             analysis = Analysis.objects.create(
                 text=text,
                 result=result,
                 confidence_score=confidence,
                 user=request.user
             )
+            print(f"💾 Analyse sauvegardée ID: {analysis.pk}")
             
-            messages.success(request, f"✅ Analyse #{analysis.pk} enregistrée avec succès !")
+            messages.success(request, f"✅ Analyse #{analysis.pk} enregistrée !")
             
+            # ✅ CORRECTION : Passer les bonnes variables au template
             return render(request, 'dashboard/analyzer.html', {
-                'result': result,
+                'analysis_result': result,  # ← Variable utilisée dans le template
                 'analysis': analysis,
                 'confidence': confidence
             })
             
         except Exception as e:
-            messages.error(request, f"❌ Erreur lors de l'analyse : {str(e)}")
-            return render(request, 'dashboard/analyzer.html')
+            print(f"❌ Erreur: {e}")
+            messages.error(request, f"❌ Erreur : {str(e)}")
+            return render(request, 'dashboard/analyzer.html', {
+                'error_message': str(e)  # ← Variable utilisée dans le template
+            })
     
     return render(request, 'dashboard/analyzer.html')
 
