@@ -4,19 +4,27 @@
 
 {% block content %}
 <div class="bg-white rounded-xl shadow-lg">
-    <div class="px-6 py-4 border-b border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h5 class="text-lg font-semibold text-teal-900">
             <i class="fas fa-history mr-2"></i>
             Vos {{ total_count }} analyses
             <span class="text-sm text-gray-500 font-normal">
-                (<span id="showing-count">5</span> affichées)
+                (<span id="showing-count">{% if total_count <= 5 %}{{ total_count }}{% else %}5{% endif %}</span> affichées)
             </span>
         </h5>
+        
+        <!-- Bouton Vider l'historique -->
+        {% if total_count > 0 %}
+            <a href="{% url 'dashboard:clear_history' %}" 
+               class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-trash mr-2"></i>Vider l'historique
+            </a>
+        {% endif %}
     </div>
     
     <div class="p-6">
         {% if total_count > 0 %}
-            <!-- Section des 5 dernières analyses (affichées par défaut) -->
+            <!-- Section des 5 dernières analyses -->
             <div id="recent-analyses" class="space-y-4">
                 {% for analysis in analyses_recent %}
                     <div class="border-l-4 border-{{ analysis.content_type|default:'teal' }}-500 bg-gray-50 p-4 rounded-r-lg">
@@ -36,10 +44,16 @@
                                     {{ analysis.created_at|date:"d/m/Y à H:i" }}
                                 </p>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right flex items-center space-x-3">
                                 <p class="text-lg font-bold text-teal-600">
                                     {% widthratio analysis.confidence_score 1 100 %}%
                                 </p>
+                                <!-- Bouton supprimer cette analyse -->
+                                <a href="{% url 'dashboard:delete_analysis' analysis.id %}" 
+                                   class="text-red-500 hover:text-red-700 transition-colors"
+                                   title="Supprimer cette analyse">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -66,10 +80,16 @@
                                     {{ analysis.created_at|date:"d/m/Y à H:i" }}
                                 </p>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right flex items-center space-x-3">
                                 <p class="text-lg font-bold text-teal-600">
                                     {% widthratio analysis.confidence_score 1 100 %}%
                                 </p>
+                                <!-- Bouton supprimer cette analyse -->
+                                <a href="{% url 'dashboard:delete_analysis' analysis.id %}" 
+                                   class="text-red-500 hover:text-red-700 transition-colors"
+                                   title="Supprimer cette analyse">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -99,7 +119,7 @@
     </div>
 </div>
 
-<!-- JavaScript pour le bouton Plus/Moins -->
+<!-- JavaScript pour le bouton Plus/Moins (inchangé) -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-btn');
@@ -113,14 +133,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const text = this.querySelector('span');
             
             if (allAnalyses.classList.contains('hidden')) {
-                // Afficher toutes les analyses
                 allAnalyses.classList.remove('hidden');
                 recentAnalyses.classList.add('hidden');
                 icon.className = 'fas fa-chevron-up mr-2';
                 text.textContent = 'Voir moins';
                 showingCount.textContent = '{{ total_count }}';
             } else {
-                // Afficher seulement les 5 dernières
                 allAnalyses.classList.add('hidden');
                 recentAnalyses.classList.remove('hidden');
                 icon.className = 'fas fa-chevron-down mr-2';

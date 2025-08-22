@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.contrib import messages
@@ -146,3 +146,36 @@ def extract_confidence_score(result):
         print(f"Erreur extraction score: {e}")
     
     return 0.0
+
+
+@login_required
+def delete_analysis_view(request, analysis_id):
+    """Vue pour supprimer une analyse spécifique avec confirmation"""
+    analysis = get_object_or_404(Analysis, id=analysis_id, user=request.user)
+    
+    if request.method == 'POST':
+        analysis.delete()
+        messages.success(request, "✅ Analyse supprimée avec succès !")
+        return redirect('dashboard:history')
+    
+    return render(request, 'dashboard/confirm_delete.html', {
+        'analysis': analysis,
+        'title': 'Supprimer une analyse'
+    })
+
+@login_required
+def clear_all_history_view(request):
+    """Vue pour supprimer tout l'historique avec confirmation"""
+    user_analyses = Analysis.objects.filter(user=request.user)
+    total_count = user_analyses.count()
+    
+    if request.method == 'POST':
+        deleted_count = user_analyses.count()
+        user_analyses.delete()
+        messages.success(request, f"✅ {deleted_count} analyses supprimées avec succès !")
+        return redirect('dashboard:history')
+    
+    return render(request, 'dashboard/confirm_delete.html', {
+        'analyses_count': total_count,
+        'title': 'Vider tout l\'historique'
+    })
