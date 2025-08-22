@@ -3,10 +3,17 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Analysis(models.Model):
+    TYPE_CHOICES = [
+        ('text', 'Texte'),
+        ('link', 'Lien'),
+        ('image', 'Image'),
+    ]
+    
     text = models.TextField(verbose_name="Texte analysé")
     result = models.TextField(verbose_name="Résultat de l'analyse")
     confidence_score = models.FloatField(default=0.0, verbose_name="Score de confiance")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Utilisateur")
+    content_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='text', verbose_name="Type de contenu")  # ✅ NOUVEAU CHAMP
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     
     class Meta:
@@ -28,4 +35,18 @@ class Analysis(models.Model):
             return "Peu fiable"
         else:
             return "Non fiable"
-
+    
+    @property
+    def type_display(self):
+        """Retourne le type lisible"""
+        return dict(self.TYPE_CHOICES).get(self.content_type, self.content_type)
+    
+    @property
+    def type_icon(self):
+        """Retourne l'icône correspondant au type"""
+        icons = {
+            'text': 'fas fa-file-alt',
+            'link': 'fas fa-link', 
+            'image': 'fas fa-image'
+        }
+        return icons.get(self.content_type, 'fas fa-file')

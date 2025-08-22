@@ -19,9 +19,6 @@ try:
 except ImportError as e:
     print(f"❌ Erreur import call_gpt_analysis: {e}")
 
-import re
-import sys
-
 print("PYTHONPATH :", sys.path)
 
 @login_required
@@ -32,11 +29,9 @@ def dashboard_view(request):
 @login_required
 def analyzer_view(request):
     if request.method == 'POST':
-        #  Récupérer le type sélectionné (nom correct du template)
         content_type = request.POST.get('content_type', 'text')
         print(f"Type sélectionné: {content_type}")
         
-        #  Récupérer le contenu selon le type (noms corrects du template)
         if content_type == 'text':
             content = request.POST.get('text_to_analyze', '').strip()
         elif content_type == 'link':
@@ -54,10 +49,8 @@ def analyzer_view(request):
             return render(request, 'dashboard/analyzer.html')
         
         try:
-            #  Adapter l'analyse selon le type
             if content_type == 'link':
                 print("🔗 Analyse de lien...")
-                # Instruction spécifique pour les liens
                 prompt = f"Analysez la fiabilité et la crédibilité de ce lien/site web : {content}"
                 result = call_gpt_analysis(prompt)
             elif content_type == 'image':
@@ -69,12 +62,13 @@ def analyzer_view(request):
             
             confidence = extract_confidence_score(result)
             
-            # Sauvegarde
+            print(f"🔄 Tentative de sauvegarde...")
             analysis = Analysis.objects.create(
                 text=content,
                 result=result,
                 confidence_score=confidence,
-                user=request.user
+                user=request.user,
+                content_type=content_type
             )
             
             print(f"✅ Analyse {content_type} sauvegardée ID: {analysis.pk}")
@@ -93,15 +87,32 @@ def analyzer_view(request):
     
     return render(request, 'dashboard/analyzer.html')
 
-
 @login_required
 def history_view(request):
-    """Vue pour afficher l'historique des analyses"""
-    analyses = Analysis.objects.filter(user=request.user).order_by('-created_at')[:20]
+    """Vue pour afficher l'historique avec les 5 dernières et bouton Plus"""
+    user = request.user
+    all_analyses = Analysis.objects.filter(user=user).order_by('-created_at')
+    total_count = all_analyses.count()
+    
+    print(f"📊 Total analyses pour {user}: {total_count}")
+    
+    # Gestion du cas vide
+    if not all_analyses.exists():
+        return render(request, 'dashboard/history.html', {
+            'analyses_recent': [],
+            'analyses_all': [],
+            'total_count': 0,
+        })
+    
+    # Les 5 dernières analyses (affichées par défaut)
+    analyses_recent = all_analyses[:5]
+    
     return render(request, 'dashboard/history.html', {
-        'analyses': analyses,
-        'total_count': Analysis.objects.filter(user=request.user).count()
+        'analyses_recent': analyses_recent,  # Les 5 dernières
+        'analyses_all': all_analyses,        # Toutes (pour le bouton Plus)
+        'total_count': total_count,
     })
+
 
 @login_required
 def statistics_view(request):
