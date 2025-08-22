@@ -31,51 +31,68 @@ def dashboard_view(request):
 
 @login_required
 def analyzer_view(request):
-    print(f"=== analyzer_view - Méthode: {request.method} ===")
-    
     if request.method == 'POST':
-        text = request.POST.get('text_to_analyze', '').strip()  
-        print(f"Texte reçu: '{text}' (longueur: {len(text)})")
-        print(f"Données POST: {dict(request.POST)}")
+        #  Récupérer le type sélectionné (nom correct du template)
+        content_type = request.POST.get('content_type', 'text')
+        print(f"Type sélectionné: {content_type}")
         
-        if not text or len(text) < 10:
-            messages.error(request, "Le texte doit contenir au moins 10 caractères.")
+        #  Récupérer le contenu selon le type (noms corrects du template)
+        if content_type == 'text':
+            content = request.POST.get('text_to_analyze', '').strip()
+        elif content_type == 'link':
+            content = request.POST.get('content', '').strip()          
+        elif content_type == 'image':
+            uploaded_file = request.FILES.get('image')                
+            content = f"Image: {uploaded_file.name}" if uploaded_file else ""
+        else:
+            content = ""
+            
+        print(f"Contenu reçu pour {content_type}: '{content}'")
+        
+        if not content or len(content) < 5:
+            messages.error(request, "Veuillez saisir du contenu à analyser.")
             return render(request, 'dashboard/analyzer.html')
         
         try:
-            print("🔄 Appel call_gpt_analysis...")
-            result = call_gpt_analysis(text)
-            print(f"✅ Résultat: {result}")
+            #  Adapter l'analyse selon le type
+            if content_type == 'link':
+                print("🔗 Analyse de lien...")
+                # Instruction spécifique pour les liens
+                prompt = f"Analysez la fiabilité et la crédibilité de ce lien/site web : {content}"
+                result = call_gpt_analysis(prompt)
+            elif content_type == 'image':
+                print("🖼️ Analyse d'image...")
+                result = f"Analyse d'image en développement pour : {content}"
+            else:
+                print("📝 Analyse de texte...")
+                result = call_gpt_analysis(content)
             
             confidence = extract_confidence_score(result)
-            print(f"📊 Confiance: {confidence}")
             
-            # Enregistrement en base
+            # Sauvegarde
             analysis = Analysis.objects.create(
-                text=text,
+                text=content,
                 result=result,
                 confidence_score=confidence,
                 user=request.user
             )
-            print(f"💾 Analyse sauvegardée ID: {analysis.pk}")
             
-            messages.success(request, f"✅ Analyse #{analysis.pk} enregistrée !")
+            print(f"✅ Analyse {content_type} sauvegardée ID: {analysis.pk}")
+            messages.success(request, f"✅ Analyse enregistrée avec succès !")
             
-            # ✅ CORRECTION : Passer les bonnes variables au template
             return render(request, 'dashboard/analyzer.html', {
-                'analysis_result': result,  # ← Variable utilisée dans le template
+                'analysis_result': result,
                 'analysis': analysis,
-                'confidence': confidence
+                'confidence': confidence * 100 if confidence < 1 else confidence,
             })
             
         except Exception as e:
             print(f"❌ Erreur: {e}")
-            messages.error(request, f"❌ Erreur : {str(e)}")
-            return render(request, 'dashboard/analyzer.html', {
-                'error_message': str(e)  # ← Variable utilisée dans le template
-            })
+            messages.error(request, f"❌ Erreur lors de l'analyse : {str(e)}")
+            return render(request, 'dashboard/analyzer.html')
     
     return render(request, 'dashboard/analyzer.html')
+
 
 @login_required
 def history_view(request):
