@@ -117,16 +117,22 @@ def history_view(request):
 @login_required
 def statistics_view(request):
     """Page statistiques simplifiée - FactGuard Sprint 1"""
+    avg_score_raw = Analysis.objects.filter(user=request.user).aggregate(
+        avg_score=models.Avg('confidence_score')
+    )['avg_score'] or 0
+    
+    # Conversion du score de 0-1 vers 0-100 avec arrondi à 1 décimale
+    avg_score_percentage = round(avg_score_raw * 100, 1)
+    
     context = { 
         'page': 'Statistiques',
         'total_analyses': Analysis.objects.filter(user=request.user).count(),
-        'avg_score': Analysis.objects.filter(user=request.user).aggregate(
-            avg_score=models.Avg('confidence_score')
-        )['avg_score'] or 0,
+        'avg_score': avg_score_percentage,
         'user': request.user,
     }
     
     return render(request, 'dashboard/statistics.html', context)
+
 
 def extract_confidence_score(result):
     """Extrait le score de confiance du résultat GPT"""
