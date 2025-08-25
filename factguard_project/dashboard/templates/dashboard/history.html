@@ -6,75 +6,6 @@
 {% block page_title %}Historique des analyses{% endblock %}
 
 {% block content %}
-   <section class="bg-white rounded-xl shadow-lg border border-teal-100">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-teal-50 to-cyan-50">
-            <h5 class="text-lg font-semibold text-teal-900 flex items-center">
-                <i class="fas fa-activity mr-3 text-teal-600"></i>
-                Activité récente
-            </h5>
-        </div>
-        <div class="p-6">
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-4 bg-teal-50 rounded-lg border-l-4 border-teal-500 hover:bg-teal-100 transition-colors">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-teal-500 rounded-full mr-4 animate-pulse"></div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-800">Analyse de texte</span>
-                            <p class="text-xs text-gray-600">Article de presse - Score: 87%</p>
-                        </div>
-                    </div>
-                    <span class="text-xs text-teal-600 font-medium bg-teal-100 px-2 py-1 rounded-full">Il y a 23 min</span>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-cyan-50 rounded-lg border-l-4 border-cyan-500 hover:bg-cyan-100 transition-colors">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-cyan-500 rounded-full mr-4"></div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-800">Analyse de lien</span>
-                            <p class="text-xs text-gray-600">Site web d'actualités - Score: 92%</p>
-                        </div>
-                    </div>
-                    <span class="text-xs text-cyan-600 font-medium bg-cyan-100 px-2 py-1 rounded-full">Il y a 1h 15min</span>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-emerald-50 rounded-lg border-l-4 border-emerald-500 hover:bg-emerald-100 transition-colors">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-emerald-500 rounded-full mr-4"></div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-800">Analyse d'image</span>
-                            <p class="text-xs text-gray-600">Capture d'écran - Score: 71%</p>
-                        </div>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">Il y a 2h 30min</span>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400 hover:bg-orange-100 transition-colors">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-orange-400 rounded-full mr-4"></div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-800">Analyse de texte</span>
-                            <p class="text-xs text-gray-600">Post réseaux sociaux - Score: 43%</p>
-                        </div>
-                    </div>
-                    <span class="text-xs text-orange-600 font-medium bg-orange-100 px-2 py-1 rounded-full">Il y a 3h 45min</span>
-                </div>
-            </div>
-            
-            <!-- Bouton voir plus -->
-            <div class="mt-6 text-center">
-                <button class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    <i class="fas fa-history mr-2"></i>
-                    Voir l'historique complet
-                </button>
-            </div>
-        </div>
-    </section>
-{% endblock %}
-=======
-{% block title %}Historique - FactGuard{% endblock %}
-{% block page_title %}Historique des analyses{% endblock %}
-
-{% block content %}
 <div class="bg-white rounded-xl shadow-lg">
     <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h5 class="text-lg font-semibold text-teal-900">
@@ -190,8 +121,9 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
 
-<!-- JavaScript pour le bouton Plus/Moins (inchangé) -->
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-btn');
@@ -222,4 +154,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+
 
