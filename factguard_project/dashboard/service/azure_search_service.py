@@ -1,33 +1,38 @@
-# dashboard/services/azure_search_service.py
+import os
 from azure.search.documents import SearchClient
-from azure.search.documents.indexes import SearchIndexClient
 from azure.core.credentials import AzureKeyCredential
-from django.conf import settings
 
 class AzureSearchService:
     def __init__(self):
-        # Configuration depuis settings.py
-        self.service_endpoint = settings.AZURE_SEARCH_SERVICE_ENDPOINT
-        self.admin_key = settings.AZURE_SEARCH_ADMIN_KEY
-        self.index_name = settings.AZURE_SEARCH_INDEX_NAME
+        self.endpoint = os.getenv('AZURE_SEARCH_SERVICE_ENDPOINT')
+        self.key = os.getenv('AZURE_SEARCH_ADMIN_KEY')
+        self.index_name = os.getenv('AZURE_SEARCH_INDEX_NAME')
         
-        # Credential réutilisable
-        self.credential = AzureKeyCredential(self.admin_key)
-    
-    def get_search_client(self):
-        """Retourne un client de recherche configuré"""
-        return SearchClient(
-            endpoint=self.service_endpoint,
+        self.search_client = SearchClient(
+            endpoint=self.endpoint,
             index_name=self.index_name,
-            credential=self.credential
+            credential=AzureKeyCredential(self.key)
         )
     
-    def get_index_client(self):
-        """Retourne un client d'index configuré"""
-        return SearchIndexClient(
-            endpoint=self.service_endpoint,
-            credential=self.credential
-        )
+    def search_similar_content(self, query, top=5):
+        """Recherche de contenu similaire"""
+        try:
+            results = self.search_client.search(
+                search_text=query,
+                top=top,
+                select=["id", "content", "source", "credibility_score"]
+            )
+            return list(results)
+        except Exception as e:
+            print(f"Erreur de recherche: {e}")
+            return []
+    
+    def index_analysis(self, analysis_data):
+        """Indexer une nouvelle analyse"""
+        try:
+            result = self.search_client.upload_documents([analysis_data])
+            return result
+        except Exception as e:
+            print(f"Erreur d'indexation: {e}")
+            return None
 
-# Instance globale
-azure_search_service = AzureSearchService()

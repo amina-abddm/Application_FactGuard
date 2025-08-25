@@ -66,3 +66,7 @@ urllib3==2.5.0
 uvicorn==0.35.0
 python-decouple==3.8
 
+# Packages Azure AI Search
+azure-search-documents==11.4.0
+azure-identity==1.15.0 
+azure-core==1.29.0
