@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.utils import timezone
+from django.db.models import Count, Avg
 from django.contrib import messages
 from .models import Analysis
 import re
@@ -116,18 +118,69 @@ def history_view(request):
 
 @login_required
 def statistics_view(request):
-    """Page statistiques simplifiée - FactGuard Sprint 1"""
-    avg_score_raw = Analysis.objects.filter(user=request.user).aggregate(
+    """Page statistiques complète - FactGuard"""
+    
+    # Données de base
+    user_analyses = Analysis.objects.filter(user=request.user)
+    total_analyses = user_analyses.count()
+    
+    # Score moyen (0-1 vers 0-100)
+    avg_score_raw = user_analyses.aggregate(
         avg_score=models.Avg('confidence_score')
     )['avg_score'] or 0
-    
-    # Conversion du score de 0-1 vers 0-100 avec arrondi à 1 décimale
     avg_score_percentage = round(avg_score_raw * 100, 1)
     
-    context = { 
+    # Contenu fiable (seuil : confidence_score >= 0.75)
+    reliable_count = user_analyses.filter(confidence_score__gte=0.75).count()
+    reliable_content = round((reliable_count / total_analyses) * 100, 1) if total_analyses > 0 else 0
+    
+    # Analyses d'aujourd'hui
+    today = timezone.now().date()
+    analyses_today = user_analyses.filter(created_at__date=today).count()
+    
+    # Répartition par type
+    type_counts = user_analyses.values('content_type').annotate(count=Count('id'))
+    type_stats = {'text': 0, 'link': 0, 'image': 0}
+    for item in type_counts:
+        content_type = item['content_type']
+        if content_type in type_stats:
+            type_stats[content_type] = item['count']
+    
+    # Pourcentages pour les jauges
+    total_content = sum(type_stats.values())
+    type_percentages = {
+        'text_percent': round((type_stats['text'] / total_content) * 100, 1) if total_content > 0 else 0,
+        'link_percent': round((type_stats['link'] / total_content) * 100, 1) if total_content > 0 else 0,
+        'image_percent': round((type_stats['image'] / total_content) * 100, 1) if total_content > 0 else 0,
+    }
+    
+    # Dernière analyse
+    last_analysis = user_analyses.order_by('-created_at').first()
+    last_analysis_text = "Pas encore d'analyse"
+    if last_analysis:
+        time_diff = timezone.now() - last_analysis.created_at
+        if time_diff.days > 0:
+            last_analysis_text = f"Il y a {time_diff.days} jour(s)"
+        elif time_diff.seconds > 3600:
+            hours = time_diff.seconds // 3600
+            last_analysis_text = f"Il y a {hours} heure(s)"
+        else:
+            minutes = time_diff.seconds // 60
+            last_analysis_text = f"Il y a {minutes} minute(s)"
+    
+    # Context complet
+    context = {
         'page': 'Statistiques',
-        'total_analyses': Analysis.objects.filter(user=request.user).count(),
+        'total_analyses': total_analyses,
         'avg_score': avg_score_percentage,
+        'type_stats': type_stats,
+        'type_percentages': type_percentages,
+        'simple_stats': {
+            'reliable_content': reliable_content,
+            'analyses_today': analyses_today,
+            'ai_model': 'GPT-4o',
+            'last_analysis': last_analysis_text,
+        },
         'user': request.user,
     }
     
