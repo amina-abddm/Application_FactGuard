@@ -12,4 +12,6 @@ urlpatterns = [
     path('recommendations/', include('recommendations.urls')),
     path('delete-analysis/<int:analysis_id>/', views.delete_analysis_view, name='delete_analysis'),
     path('clear-history/', views.clear_all_history_view, name='clear_history'),
+    path('rag-analyzer/', views.analyzer_unified_view, name='rag_analyzer'),
+
 ]

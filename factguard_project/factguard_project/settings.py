@@ -32,13 +32,22 @@ print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affi
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔧 NOUVEAU : Chargement .env depuis azure/
-env_path = PROJECT_ROOT / 'azure' / '.env'
+env_path = PROJECT_ROOT / 'factguard_azure' / '.env'
 load_dotenv(env_path)
 
 # Debug multi-plateforme
 print(f"OS: {os.name}")
 print(f"Chemin .env: {env_path}")
 print(f"Existe: {'OUI' if env_path.exists() else 'NON'}")
+
+# ✅ VOTRE CODE ICI - Configuration Azure Search
+AZURE_CONFIG_DIR = BASE_DIR.parent / 'factguard_azure'  # ✅ CORRECT
+AZURE_SEARCH_SCHEMA_FILE = AZURE_CONFIG_DIR / 'search_index_schema.json'
+
+# Variables d'environnement Azure (récupérées depuis .env)
+AZURE_SEARCH_ENDPOINT = os.getenv('AZURE_SEARCH_ENDPOINT')
+AZURE_SEARCH_API_KEY = os.getenv('AZURE_SEARCH_API_KEY')
+AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME', 'factguard-analyses')
 
 
 

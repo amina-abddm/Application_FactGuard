@@ -5,89 +5,211 @@ from django.utils import timezone
 from django.db.models import Count, Avg
 from django.contrib import messages
 from .models import Analysis
+from typing import Optional, Protocol, TYPE_CHECKING
 import re
 import sys
 
-# Imports avec gestion d'erreur
+# ============================================================================
+# IMPORTS ET CONFIGURATION DES SERVICES IA
+# ============================================================================
+
+# Import conditionnel du service RAG avec typage correct
+RAGServiceType = None
+RAG_AVAILABLE = False
+
+try:
+    from api.services.rag_service import RAGService
+    RAGServiceType = RAGService
+    RAG_AVAILABLE = True
+    print(" Service RAG importé avec succès depuis api.services")
+except ImportError as e:
+    RAGServiceType = None
+    RAG_AVAILABLE = False
+    print(f" Service RAG non disponible: {e}")
+
+# Import conditionnel Azure OpenAI
 try:
     from api.services.azure_openai_service import AzureOpenAIService as AzureService
-    print("✅ AzureService importé avec succès")
+    print(" AzureService importé avec succès")
 except ImportError as e:
-    print(f"❌ Erreur import AzureService: {e}")
+    print(f" Erreur import AzureService: {e}")
 
 try:
-    from azure.azure_openai import analyse_information as call_gpt_analysis
-    print("✅ call_gpt_analysis importé avec succès")
+    from factguard_azure.azure_openai import analyse_information as call_gpt_analysis
+    print(" call_gpt_analysis importé avec succès")
 except ImportError as e:
-    print(f"❌ Erreur import call_gpt_analysis: {e}")
+    print(f" Erreur import call_gpt_analysis: {e}")
+
+# Définition d'un Protocol pour le typage
+class RAGServiceProtocol(Protocol):
+    def analyze_with_context(self, query: str) -> dict:
+        ...
+    def get_similar_analyses(self, query: str, limit: int = 5) -> list:
+        ...
 
 print("PYTHONPATH :", sys.path)
+
+# ============================================================================
+# VUES PRINCIPALES
+# ============================================================================
 
 @login_required
 def dashboard_view(request):
     """Redirection vers analyzer - point d'entrée principal FactGuard"""
-    return redirect('analyzer')
+    return redirect('dashboard:analyzer')
 
 @login_required
-def analyzer_view(request):
+def analyzer_unified_view(request):
+    """ Analyseur Unifié - Standard et RAG avec sélection de mode"""
+    
+    # Détecter le mode basé sur l'URL ou paramètre
+    is_rag_mode = 'rag' in request.path or request.GET.get('mode') == 'rag'
+    
+    context = {
+        'rag_mode': is_rag_mode,
+        'rag_available': RAG_AVAILABLE,
+        'page_title': 'Analyseur Intelligent RAG' if is_rag_mode else 'Analyseur Standard'
+    }
+    
     if request.method == 'POST':
+        print(f" DEBUG: Mode détecté = {'RAG' if is_rag_mode else 'Standard'}")
+        print(f" DEBUG: Données POST = {dict(request.POST)}")
+        
+        # Récupération intelligente du contenu selon le type
         content_type = request.POST.get('content_type', 'text')
-        print(f"Type sélectionné: {content_type}")
+        analysis_mode = request.POST.get('analysis_mode', 'rag' if is_rag_mode else 'standard')
         
-        if content_type == 'text':
-            content = request.POST.get('text_to_analyze', '').strip()
-        elif content_type == 'link':
-            content = request.POST.get('content', '').strip()          
-        elif content_type == 'image':
-            uploaded_file = request.FILES.get('image')                
-            content = f"Image: {uploaded_file.name}" if uploaded_file else ""
-        else:
-            content = ""
-            
-        print(f"Contenu reçu pour {content_type}: '{content}'")
+        # Extraction du contenu selon le type sélectionné
+        content = _extract_content_by_type(request, content_type)
         
-        if not content or len(content) < 5:
-            messages.error(request, "Veuillez saisir du contenu à analyser.")
-            return render(request, 'dashboard/analyzer.html')
+        print(f" DEBUG: Type = {content_type}, Contenu = '{str(content)[:100]}...'")
+        
+        if not content or (isinstance(content, str) and len(content) < 5):
+            messages.error(request, "Veuillez saisir du contenu à analyser (minimum 5 caractères).")
+            return render(request, 'dashboard/analyzer_unified.html', context)
         
         try:
-            if content_type == 'link':
-                print("🔗 Analyse de lien...")
-                prompt = f"Analysez la fiabilité et la crédibilité de ce lien/site web : {content}"
-                result = call_gpt_analysis(prompt)
-            elif content_type == 'image':
-                print("🖼️ Analyse d'image...")
-                result = f"Analyse d'image en développement pour : {content}"
+            # Choix du mode d'analyse
+            if analysis_mode == 'rag' and RAG_AVAILABLE and RAGServiceType is not None:
+                analysis_result, additional_context = _perform_rag_analysis(content)
+                context.update(additional_context)
+                context['analysis_mode'] = 'rag'
+                
+                sources_count = additional_context.get('sources_count', 0)
+                messages.success(request, f" Analyse RAG terminée avec {sources_count} source(s) contextuelle(s)!")
+                
             else:
-                print("📝 Analyse de texte...")
-                result = call_gpt_analysis(content)
+                analysis_result = _perform_standard_analysis(content, content_type)
+                context.update({
+                    'analysis_result': analysis_result,
+                    'analysis_mode': 'standard'
+                })
+                messages.success(request, " Analyse standard terminée !")
             
-            confidence = extract_confidence_score(result)
+            # Extraction du score de confiance et sauvegarde
+            confidence = extract_confidence_score(context['analysis_result'])
             
-            print(f"🔄 Tentative de sauvegarde...")
             analysis = Analysis.objects.create(
-                text=content,
-                result=result,
+                text=str(content)[:1000],  # Limiter la taille pour la DB
+                result=context['analysis_result'],
                 confidence_score=confidence,
                 user=request.user,
                 content_type=content_type
             )
             
-            print(f"✅ Analyse {content_type} sauvegardée ID: {analysis.pk}")
-            messages.success(request, f"✅ Analyse enregistrée avec succès !")
-            
-            return render(request, 'dashboard/analyzer.html', {
-                'analysis_result': result,
-                'analysis': analysis,
+            context.update({
                 'confidence': confidence * 100 if confidence < 1 else confidence,
+                'query_analyzed': content,
+                'analysis': analysis
             })
             
+            print(f" DEBUG: Analyse sauvegardée ID: {analysis.pk}")
+            
         except Exception as e:
-            print(f"❌ Erreur: {e}")
-            messages.error(request, f"❌ Erreur lors de l'analyse : {str(e)}")
-            return render(request, 'dashboard/analyzer.html')
+            print(f" DEBUG: Erreur lors de l'analyse: {e}")
+            messages.error(request, f" Erreur lors de l'analyse : {str(e)}")
+            context['error_message'] = str(e)
     
-    return render(request, 'dashboard/analyzer.html')
+    return render(request, 'dashboard/analyzer_unified.html', context)
+
+# ============================================================================
+# FONCTIONS UTILITAIRES
+# ============================================================================
+
+def _extract_content_by_type(request, content_type):
+    """Extrait le contenu selon le type sélectionné"""
+    if content_type == 'text':
+        return request.POST.get('text_to_analyze', '').strip()
+    elif content_type == 'link':
+        return request.POST.get('content', '').strip()
+    elif content_type == 'image':
+        uploaded_file = request.FILES.get('image')
+        return f"Image: {uploaded_file.name}" if uploaded_file else ""
+    else:
+        return request.POST.get('content', '').strip()
+
+def _perform_rag_analysis(content):
+    """Effectue une analyse RAG"""
+    print(" DEBUG: Utilisation du mode RAG")
+    
+    if RAGServiceType is None:
+        raise RuntimeError("Le service RAG n'est pas disponible.")
+    rag_service: RAGServiceProtocol = RAGServiceType()
+    rag_result = rag_service.analyze_with_context(str(content))
+    
+    analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
+    additional_context = {
+        'analysis_result': analysis_result,
+        'sources_count': rag_result.get('sources_count', 0),
+        'context_used': rag_result.get('context_used', '')
+    }
+    
+    return analysis_result, additional_context
+
+def _perform_standard_analysis(content, content_type):
+    """Effectue une analyse standard GPT-4o"""
+    print("⚡ DEBUG: Utilisation du mode standard")
+    
+    if content_type == 'link':
+        prompt = f"Analysez la fiabilité et la crédibilité de ce lien/site web : {content}"
+        return call_gpt_analysis(prompt)
+    elif content_type == 'image':
+        return f"Analyse d'image en développement pour : {content}"
+    else:
+        return call_gpt_analysis(str(content))
+
+def extract_confidence_score(result):
+    """Extrait le score de confiance du résultat GPT"""
+    try:
+        patterns = [
+            r'(?:score|fiabilité)[:\s]*(\d+(?:\.\d+)?)\s*[/%]',
+            r'(\d+(?:\.\d+)?)\s*[/%]',
+            r'confiance[:\s]*(\d+(?:\.\d+)?)'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, str(result).lower())
+            if match:
+                score = float(match.group(1))
+                return score / 100 if score > 1 else score
+    except Exception as e:
+        print(f"Erreur extraction score: {e}")
+    
+    return 0.0
+
+# ============================================================================
+# VUES EXISTANTES (inchangées)
+# ============================================================================
+
+@login_required
+def analyzer_view(request):
+    """Vue analyzer standard - redirige vers la vue unifiée"""
+    return analyzer_unified_view(request)
+
+@login_required
+def rag_analyzer_view(request):
+    """Vue RAG analyzer - redirige vers la vue unifiée"""
+    return analyzer_unified_view(request)
 
 @login_required
 def history_view(request):
@@ -98,7 +220,6 @@ def history_view(request):
     
     print(f"📊 Total analyses pour {user}: {total_count}")
     
-    # Gestion du cas vide
     if not all_analyses.exists():
         return render(request, 'dashboard/history.html', {
             'analyses_recent': [],
@@ -106,39 +227,32 @@ def history_view(request):
             'total_count': 0,
         })
     
-    # Les 5 dernières analyses (affichées par défaut)
     analyses_recent = all_analyses[:5]
     
     return render(request, 'dashboard/history.html', {
-        'analyses_recent': analyses_recent,  # Les 5 dernières
-        'analyses_all': all_analyses,        # Toutes (pour le bouton Plus)
+        'analyses_recent': analyses_recent,
+        'analyses_all': all_analyses,
         'total_count': total_count,
     })
-
 
 @login_required
 def statistics_view(request):
     """Page statistiques complète - FactGuard"""
     
-    # Données de base
     user_analyses = Analysis.objects.filter(user=request.user)
     total_analyses = user_analyses.count()
     
-    # Score moyen (0-1 vers 0-100)
     avg_score_raw = user_analyses.aggregate(
         avg_score=models.Avg('confidence_score')
     )['avg_score'] or 0
     avg_score_percentage = round(avg_score_raw * 100, 1)
     
-    # Contenu fiable (seuil : confidence_score >= 0.75)
     reliable_count = user_analyses.filter(confidence_score__gte=0.75).count()
     reliable_content = round((reliable_count / total_analyses) * 100, 1) if total_analyses > 0 else 0
     
-    # Analyses d'aujourd'hui
     today = timezone.now().date()
     analyses_today = user_analyses.filter(created_at__date=today).count()
     
-    # Répartition par type
     type_counts = user_analyses.values('content_type').annotate(count=Count('id'))
     type_stats = {'text': 0, 'link': 0, 'image': 0}
     for item in type_counts:
@@ -146,7 +260,6 @@ def statistics_view(request):
         if content_type in type_stats:
             type_stats[content_type] = item['count']
     
-    # Pourcentages pour les jauges
     total_content = sum(type_stats.values())
     type_percentages = {
         'text_percent': round((type_stats['text'] / total_content) * 100, 1) if total_content > 0 else 0,
@@ -154,7 +267,6 @@ def statistics_view(request):
         'image_percent': round((type_stats['image'] / total_content) * 100, 1) if total_content > 0 else 0,
     }
     
-    # Dernière analyse
     last_analysis = user_analyses.order_by('-created_at').first()
     last_analysis_text = "Pas encore d'analyse"
     if last_analysis:
@@ -168,7 +280,6 @@ def statistics_view(request):
             minutes = time_diff.seconds // 60
             last_analysis_text = f"Il y a {minutes} minute(s)"
     
-    # Context complet
     context = {
         'page': 'Statistiques',
         'total_analyses': total_analyses,
@@ -186,27 +297,6 @@ def statistics_view(request):
     
     return render(request, 'dashboard/statistics.html', context)
 
-
-def extract_confidence_score(result):
-    """Extrait le score de confiance du résultat GPT"""
-    try:
-        patterns = [
-            r'(?:score|fiabilité)[:\s]*(\d+(?:\.\d+)?)\s*[/%]',
-            r'(\d+(?:\.\d+)?)\s*[/%]',
-            r'confiance[:\s]*(\d+(?:\.\d+)?)'
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, result.lower())
-            if match:
-                score = float(match.group(1))
-                return score / 100 if score > 1 else score
-    except Exception as e:
-        print(f"Erreur extraction score: {e}")
-    
-    return 0.0
-
-
 @login_required
 def delete_analysis_view(request, analysis_id):
     """Vue pour supprimer une analyse spécifique avec confirmation"""
@@ -214,7 +304,7 @@ def delete_analysis_view(request, analysis_id):
     
     if request.method == 'POST':
         analysis.delete()
-        messages.success(request, "✅ Analyse supprimée avec succès !")
+        messages.success(request, " Analyse supprimée avec succès !")
         return redirect('dashboard:history')
     
     return render(request, 'dashboard/confirm_delete.html', {
@@ -231,7 +321,7 @@ def clear_all_history_view(request):
     if request.method == 'POST':
         deleted_count = user_analyses.count()
         user_analyses.delete()
-        messages.success(request, f"✅ {deleted_count} analyses supprimées avec succès !")
+        messages.success(request, f" {deleted_count} analyses supprimées avec succès !")
         return redirect('dashboard:history')
     
     return render(request, 'dashboard/confirm_delete.html', {

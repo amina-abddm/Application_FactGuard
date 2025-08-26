@@ -1,0 +1,62 @@
+[
+  {
+    "model": "dashboard.analysis",
+    "pk": 1,
+    "fields": {
+      "text": "Paul Pogba joue actuellement à la Juventus en Serie A.",
+      "result": "✅ **Analyse terminée !** Paul Pogba évolue effectivement à la Juventus Turin depuis son transfert en 2022. Cette information est exacte. **Score de fiabilité** : 95%",
+      "confidence_score": 0.95,
+      "user": 1,
+      "content_type": "text",
+      "created_at": "2025-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "dashboard.analysis",
+    "pk": 2,
+    "fields": {
+      "text": "Kylian Mbappé a signé au Real Madrid en 2024.",
+      "result": "✅ **Information confirmée !** Kylian Mbappé a officiellement rejoint le Real Madrid en juin 2024 après la fin de son contrat avec le PSG. **Score de fiabilité** : 98%",
+      "confidence_score": 0.98,
+      "user": 1,
+      "content_type": "text",
+      "created_at": "2025-08-25T11:00:00Z"
+    }
+  },
+  {
+    "model": "dashboard.analysis",
+    "pk": 3,
+    "fields": {
+      "text": "Emmanuel Macron est le président de la France.",
+      "result": "✅ **Fact-check validé !** Emmanuel Macron est bien le Président de la République française depuis 2017, réélu en 2022. **Score de fiabilité** : 100%",
+      "confidence_score": 1.0,
+      "user": 1,
+      "content_type": "text",
+      "created_at": "2025-08-25T12:00:00Z"
+    }
+  },
+  {
+    "model": "dashboard.analysis",
+    "pk": 4,
+    "fields": {
+      "text": "La tour Eiffel mesure 324 mètres de hauteur.",
+      "result": "✅ **Information exacte !** La tour Eiffel mesure effectivement 324 mètres avec ses antennes. Sans antennes, elle mesure 300 mètres. **Score de fiabilité** : 100%",
+      "confidence_score": 1.0,
+      "user": 1,
+      "content_type": "text",
+      "created_at": "2025-08-25T13:00:00Z"
+    }
+  },
+  {
+    "model": "dashboard.analysis",
+    "pk": 5,
+    "fields": {
+      "text": "Le Real Madrid a remporté la Ligue des Champions en 2024.",
+      "result": "✅ **Résultat confirmé !** Le Real Madrid a effectivement remporté la Ligue des Champions 2024 en battant le Borussia Dortmund 2-0 en finale. **Score de fiabilité** : 98%",
+      "confidence_score": 0.98,
+      "user": 1,
+      "content_type": "text",
+      "created_at": "2025-08-25T14:00:00Z"
+    }
+  }
+]

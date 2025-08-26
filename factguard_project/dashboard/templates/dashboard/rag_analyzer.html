@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>🤖 Analyseur Intelligent RAG</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Contenu à analyser avec contexte historique :</label>
+            <textarea name="content" rows="6" class="form-control" required>{{ request.POST.content }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">🔍 Analyser avec RAG</button>
+    </form>
+    
+    <!-- Gestion des erreurs -->
+    {% if error_message %}
+    <div class="alert alert-danger mt-4">
+        <h4>❌ Erreur</h4>
+        <p>{{ error_message }}</p>
+    </div>
+    {% endif %}
+    
+    <!-- Résultats de l'analyse -->
+    {% if analysis_result %}
+    <div class="results mt-4">
+        <h3>📊 Analyse Enrichie</h3>
+        <div class="alert alert-info">{{ analysis_result }}</div>
+        
+        {% if sources_count > 0 %}
+        <h4>📚 Sources Contextuelles Utilisées</h4>
+        <p><strong>{{ sources_count }}</strong> analyses similaires trouvées dans l'historique</p>
+        <details>
+            <summary>Voir le contexte utilisé</summary>
+            <pre>{{ context_used }}</pre>
+        </details>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
