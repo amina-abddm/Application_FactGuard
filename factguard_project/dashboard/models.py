@@ -50,3 +50,17 @@ class Analysis(models.Model):
             'image': 'fas fa-image'
         }
         return icons.get(self.content_type, 'fas fa-file')
+
+    def to_search_document(self):
+        """Convertit l'instance en document pour Azure AI Search"""
+        return {
+        "id": str(self.pk),
+        "text": self.text,
+        "result": self.result,
+        "confidence_score": float(self.confidence_score),
+        "content_type": self.content_type,
+        "user_id": str(self.user.pk),
+        "username": self.user.username,
+        "created_at": self.created_at.isoformat(),
+        "reliability_level": self.reliability_level
+    }
