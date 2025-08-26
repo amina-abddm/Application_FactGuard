@@ -14,7 +14,7 @@
                     <i class="fas fa-chart-line text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-teal-800">{{ total_analyses|default:"127" }}</h3>
+                    <h3 class="text-2xl font-bold text-teal-800">{{ total_analyses|default:"0" }}</h3>
                     <p class="text-gray-600 font-medium">Analyses totales</p>
                 </div>
             </div>
@@ -26,7 +26,7 @@
                     <i class="fas fa-percentage text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-cyan-800">{{ avg_score|default:"84" }}%</h3>
+                    <h3 class="text-2xl font-bold text-cyan-800">{{ avg_score|default:"0" }}%</h3>
                     <p class="text-gray-600 font-medium">Score moyen</p>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                     <i class="fas fa-shield-check text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-emerald-800">{{ simple_stats.reliable_content|default:"76" }}%</h3>
+                    <h3 class="text-2xl font-bold text-emerald-800">{{ simple_stats.reliable_content|default:"0" }}%</h3>
                     <p class="text-gray-600 font-medium">Contenu fiable</p>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                             <i class="fas fa-file-alt mr-2 text-teal-600"></i>
                             Texte
                         </span>
-                        <span class="font-bold text-gray-800">{{ type_stats.text|default:"45" }}</span>
+                        <span class="font-bold text-gray-800">{{ type_stats.text|default:"0" }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-3">
                         <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-3 rounded-full transition-all duration-500" style="width: {{ type_percentages.text_percent|default:"65" }}%"></div>
@@ -75,7 +75,7 @@
                             <i class="fas fa-link mr-2 text-cyan-600"></i>
                             Liens
                         </span>
-                        <span class="font-bold text-gray-800">{{ type_stats.link|default:"28" }}</span>
+                        <span class="font-bold text-gray-800">{{ type_stats.link|default:"0" }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-3">
                         <div class="bg-gradient-to-r from-cyan-500 to-cyan-600 h-3 rounded-full transition-all duration-500" style="width: {{ type_percentages.link_percent|default:"40" }}%"></div>
@@ -88,7 +88,7 @@
                             <i class="fas fa-image mr-2 text-emerald-600"></i>
                             Images
                         </span>
-                        <span class="font-bold text-gray-800">{{ type_stats.image|default:"12" }}</span>
+                        <span class="font-bold text-gray-800">{{ type_stats.image|default:"0" }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-3">
                         <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all duration-500" style="width: {{ type_percentages.image_percent|default:"17" }}%"></div>
@@ -111,7 +111,7 @@
                         <i class="fas fa-calendar-day mr-3 text-teal-500 w-4"></i>
                         Analyses aujourd'hui
                     </span>
-                    <span class="font-bold text-teal-800">{{ simple_stats.analyses_today|default:"8" }}</span>
+                    <span class="font-bold text-teal-800">{{ simple_stats.analyses_today|default:"0" }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                     <span class="text-gray-600 flex items-center">
@@ -125,7 +125,7 @@
                         <i class="fas fa-clock mr-3 text-emerald-500 w-4"></i>
                         Dernière analyse
                     </span>
-                    <span class="font-bold text-gray-800">{{ simple_stats.last_analysis|default:"Il y a 23 min" }}</span>
+                    <span class="font-bold text-gray-800">{{ simple_stats.last_analysis|default:"Pas encore de donées" }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2">
                     <span class="text-gray-600 flex items-center">

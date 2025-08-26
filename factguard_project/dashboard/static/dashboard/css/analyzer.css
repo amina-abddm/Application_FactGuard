@@ -1,0 +1,775 @@
+
+/* Variables CSS pour FactGuard */
+:root {
+    --primary-25: #f8fafc;
+    --primary-50: #f1f5f9;
+    --primary-100: #e2e8f0;
+    --primary-200: #cbd5e1;
+    --primary-300: #94a3b8;
+    --primary-400: #64748b;
+    --primary-500: #0f766e;
+    --primary-600: #0d9488;
+    --primary-700: #0f766e;
+    
+    --secondary-500: #06b6d4;
+    --secondary-600: #0891b2;
+    --secondary-700: #0e7490;
+    
+    --accent-500: #8b5cf6;
+    --accent-600: #7c3aed;
+    --accent-700: #6d28d9;
+
+    --white: #ffffff;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-custom: 0 4px 20px rgba(27, 66, 66, 0.1);
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--gray-900);
+    background-color: var(--gray-50);
+}
+
+/* Utilitaires */
+.hidden {
+    display: none !important;
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* Layout principal reproduit votre structure Django */
+.d-flex {
+    display: flex;
+}
+
+.flex-fill {
+    flex: 1 1 auto;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+/* Sidebar - Reproduit votre design exact */
+.sidebar {
+    width: 16rem;
+    background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
+    border-right: 2px solid var(--primary-200);
+    box-shadow: var(--shadow-lg);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.p-4 {
+    padding: 1.5rem;
+}
+
+.mb-5 {
+    margin-bottom: 3rem;
+}
+
+.me-3 {
+    margin-right: 0.75rem;
+}
+
+.p-2 {
+    padding: 0.5rem;
+}
+
+.text-white {
+    color: var(--white);
+}
+
+.fs-3 {
+    font-size: 1.875rem;
+}
+
+.fw-bold {
+    font-weight: 700;
+}
+
+/* Brand */
+.sidebar .d-flex.align-items-center.mb-5 > div:first-child {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar .fs-3.fw-bold {
+    background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Navigation - nav-link-custom */
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--primary-700);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link-custom:hover {
+    background: var(--primary-100);
+    color: var(--primary-600);
+    transform: translateX(2px);
+}
+
+.nav-link-custom.active {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+    color: var(--white);
+    box-shadow: var(--shadow);
+}
+
+/* Main Container - Reproduit flex-fill */
+.flex-fill.d-flex.flex-column {
+    flex: 1;
+    margin-left: 16rem;
+}
+
+/* Header - Reproduit exactement votre header */
+header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-custom);
+    border-bottom: 2px solid var(--primary-100);
+}
+
+.px-4 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.h3 {
+    font-size: 1.25rem;
+}
+
+.fw-semibold {
+    font-weight: 600;
+}
+
+.mb-0 {
+    margin-bottom: 0;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+/* User Section */
+header .d-flex.align-items-center.px-3.py-2 {
+    background: var(--primary-50);
+    border-radius: 0.75rem;
+    color: var(--primary-700);
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+}
+
+.me-2 {
+    margin-right: 0.5rem;
+}
+
+.fw-medium {
+    font-weight: 500;
+}
+
+.btn.btn-sm {
+    color: var(--primary-600);
+    text-decoration: none;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+}
+
+.btn.btn-sm:hover {
+    color: var(--primary-700);
+}
+
+/* Content */
+main.flex-fill {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.container-fluid {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Cards - card-custom */
+.card.card-custom {
+    background: var(--white);
+    border: 2px solid var(--primary-100);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-custom);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card.card-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--primary-100);
+    background: var(--primary-50);
+}
+
+.card-header h4,
+.card-header h5 {
+    margin: 0;
+    color: var(--primary-700);
+    font-weight: 600;
+}
+
+/* Gradient Header spécifique */
+.card-header.text-white[style*="background: linear-gradient"] {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)) !important;
+    color: var(--white);
+    border: none;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.card-header.text-white h4 {
+    color: var(--white);
+    margin-bottom: 0.25rem;
+}
+
+.card-header.text-white .small {
+    font-size: 0.875rem;
+    color: var(--primary-100);
+    font-weight: 400;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Grid System pour buttons */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.5rem;
+}
+
+.col-md-4 {
+    flex: 0 0 32.333333%;
+    max-width: 33.333333%;
+    padding: 0 0.5rem;
+}
+
+.g-3 > * {
+    margin: 0.5rem;
+}
+
+/* === MODIFICATION ALIGNEMENT BOUTONS ANALYZER === */
+
+/* Conteneur des boutons de type de contenu - Force 3 colonnes sur une ligne */
+.content-type-selection {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: stretch;
+    margin-bottom: 2rem;
+    flex-wrap: nowrap; /* Empêche le retour à la ligne */
+}
+
+/* Override pour forcer l'alignement horizontal */
+.content-type-selection .col-md-4 {
+    flex: 1;
+    max-width: none;
+    min-width: 0;
+    display: flex;
+}
+
+/* Content Type Buttons - Version améliorée */
+.btn.btn-outline-primary.w-100.h-100.content-type-btn {
+    background: var(--white);
+    border: 2px solid var(--primary-200);
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    min-height: 7rem;
+    width: 100%;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn.btn-outline-primary.w-100.h-100.content-type-btn:hover {
+    background: var(--primary-25);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary-300);
+}
+
+/* État actif amélioré */
+.content-type-btn.active,
+.content-type-btn:focus {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)) !important;
+    color: var(--white) !important;
+    border-color: var(--primary-500) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.h-100 {
+    height: 100%;
+}
+
+/* Button Content */
+.d-flex.flex-column.align-items-center.justify-content-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.fa-2x {
+    font-size: 2.5rem;
+}
+
+.mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+/* Icônes dans les boutons */
+.content-type-btn i {
+    font-size: 2.5rem !important;
+    margin-bottom: 0.75rem;
+    color: var(--primary-500);
+    transition: all 0.3s ease;
+}
+
+.content-type-btn:hover i {
+    color: var(--primary-600);
+    transform: scale(1.1);
+}
+
+.content-type-btn.active i,
+.content-type-btn:focus i {
+    color: var(--white) !important;
+}
+
+/* Texte dans les boutons */
+.content-type-btn span {
+    font-size: 1rem !important;
+    font-weight: 600;
+    color: var(--primary-700);
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.content-type-btn:hover span {
+    color: var(--primary-800);
+}
+
+.content-type-btn.active span {
+    color: var(--white) !important;
+}
+
+/* Form Elements */
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--primary-200);
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--white);
+    color: var(--gray-900);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--gray-500);
+}
+
+/* File Drop Zone */
+.border-2.border-dashed.rounded-3.p-5.text-center {
+    border: 2px dashed var(--primary-300) !important;
+    border-radius: 0.75rem;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--primary-25);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.border-2.border-dashed.rounded-3.p-5.text-center:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-400) !important;
+}
+
+.fa-4x {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.p-5 {
+    padding: 3rem;
+}
+
+.rounded-3 {
+    border-radius: 0.75rem;
+}
+
+/* Analyze Button */
+.btn.btn-primary-custom {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+    color: var(--white);
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow);
+    padding: 1rem 2rem;
+}
+
+.btn.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+/* Results Section */
+.results-title {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    color: var(--primary-700);
+}
+
+.results-title i {
+    margin-right: 0.5rem;
+    color: var(--success);
+}
+
+.display-6 {
+    font-size: 2.5rem;
+}
+
+.fw-bold {
+    font-weight: 700;
+}
+
+/* Progress */
+.progress.progress-custom {
+    height: 12px;
+    background: var(--primary-100);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar.progress-bar-custom {
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+    border-radius: 6px;
+    transition: width 0.8s ease-out;
+    position: relative;
+}
+
+.progress-bar.progress-bar-custom::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+/* Result Message */
+.p-4.rounded-3 {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    background: var(--primary-50);
+    border: 1px solid var(--primary-200);
+    color: var(--primary-700);
+    line-height: 1.6;
+}
+
+/* Success/Warning States */
+.alert.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--success);
+    color: #065f46;
+}
+
+.alert.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--warning);
+    color: #92400e;
+}
+
+.text-success {
+    color: var(--success);
+}
+
+.text-warning {
+    color: var(--warning);
+}
+
+/* Animations */
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card.card-custom {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.card.card-custom:nth-child(1) { animation-delay: 0.1s; }
+.card.card-custom:nth-child(2) { animation-delay: 0.2s; }
+.card.card-custom:nth-child(3) { animation-delay: 0.3s; }
+
+/* === RESPONSIVE SPÉCIFIQUE AUX BOUTONS === */
+@media (max-width: 992px) {
+    .content-type-selection {
+        gap: 0.75rem;
+    }
+    
+    .content-type-btn {
+        min-height: 6rem !important;
+        padding: 1rem 0.5rem !important;
+    }
+    
+    .content-type-btn i {
+        font-size: 2rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .content-type-btn span {
+        font-size: 0.9rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .flex-fill.d-flex.flex-column {
+        margin-left: 0;
+    }
+    
+    .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    main.flex-fill {
+        padding: 1rem;
+    }
+    
+    .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .gap-3 {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    /* Boutons restent sur une ligne même sur mobile */
+    .content-type-selection {
+        gap: 0.5rem;
+    }
+    
+    .content-type-btn {
+        min-height: 5rem !important;
+        padding: 0.75rem 0.25rem !important;
+    }
+    
+    .content-type-btn i {
+        font-size: 1.75rem !important;
+    }
+    
+    .content-type-btn span {
+        font-size: 0.85rem !important;
+    }
+}
+
+/* Très petits écrans - garde les 3 boutons sur une ligne */
+@media (max-width: 576px) {
+    .content-type-selection {
+        gap: 0.25rem;
+    }
+    
+    .content-type-btn {
+        min-height: 4.5rem !important;
+        padding: 0.5rem 0.1rem !important;
+    }
+    
+    .content-type-btn i {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .content-type-btn span {
+        font-size: 0.75rem !important;
+        font-weight: 500;
+    }
+}
+
+/* Scrollbar personnalisé */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: var(--primary-100);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--primary-300);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-400);
+}
+
+/* Info items pour stats simples */
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--primary-100);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--gray-500);
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--primary-700);
+}
+

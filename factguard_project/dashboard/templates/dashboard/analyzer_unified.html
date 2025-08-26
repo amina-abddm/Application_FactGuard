@@ -1,0 +1,191 @@
+<!-- templates/dashboard/analyzer_unified.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - FactGuard{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <!-- Sélecteur de Mode d'Analyse -->
+    <div class="mb-6 bg-white rounded-xl shadow-lg p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex space-x-4">
+                <a href="{% url 'dashboard:analyzer' %}" 
+                   class="px-4 py-2 rounded-lg transition-all {% if not rag_mode %}bg-teal-600 text-white{% else %}border-2 border-teal-300 text-teal-600 hover:bg-teal-50{% endif %}">
+                    <i class="fas fa-bolt mr-2"></i>Standard
+                </a>
+                <a href="{% url 'dashboard:rag_analyzer' %}" 
+                   class="px-4 py-2 rounded-lg transition-all {% if rag_mode %}bg-purple-600 text-white{% else %}border-2 border-purple-300 text-purple-600 hover:bg-purple-50{% endif %} {% if not rag_available %}opacity-50 cursor-not-allowed{% endif %}"
+                   {% if not rag_available %}title="Service RAG non disponible"{% endif %}>
+                    <i class="fas fa-brain mr-2"></i>RAG Intelligent
+                </a>
+            </div>
+            <div class="text-sm text-gray-500">
+                {% if rag_mode %}
+                    <i class="fas fa-info-circle mr-1"></i>Analyse enrichie par l'historique
+                {% else %}
+                    <i class="fas fa-zap mr-1"></i>Analyse directe GPT-4o
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sélection du type de contenu -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <button type="button" data-type="text" class="content-type-btn border-2 border-teal-300 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-teal-50 transition-all duration-200 group">
+            <i class="fas fa-file-alt text-3xl mb-3 text-teal-600 group-hover:text-teal-700"></i>
+            <span class="font-semibold text-teal-700">Texte</span>
+        </button>
+        <button type="button" data-type="link" class="content-type-btn border-2 border-teal-300 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-teal-50 transition-all duration-200 group">
+            <i class="fas fa-link text-3xl mb-3 text-teal-500 group-hover:text-teal-600"></i>
+            <span class="font-semibold text-teal-600">Lien</span>
+        </button>
+        <button type="button" data-type="image" class="content-type-btn border-2 border-teal-300 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-teal-50 transition-all duration-200 group">
+            <i class="fas fa-image text-3xl mb-3 text-teal-400 group-hover:text-teal-500"></i>
+            <span class="font-semibold text-teal-500">Image</span>
+        </button>
+    </div>
+
+    <!-- Formulaire d'analyse unifié -->
+    <form id="analysis-form" method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-lg p-6 space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="content_type" id="content_type" value="text">
+        <input type="hidden" name="analysis_mode" value="{% if rag_mode %}rag{% else %}standard{% endif %}">
+
+        <!-- Input Texte -->
+        <div id="text-input" class="input-section">
+            <textarea name="text_to_analyze" placeholder="{% if rag_mode %}Saisissez l'information à vérifier. FactGuard utilisera son intelligence contextuelle pour une analyse enrichie...{% else %}Collez ici le texte à analyser...{% endif %}" rows="{% if rag_mode %}8{% else %}6{% endif %}"
+                class="w-full p-4 border-2 border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-vertical">{{ request.POST.text_to_analyze }}</textarea>
+        </div>
+
+        <!-- Input Lien -->
+        <div id="link-input" class="input-section hidden">
+            <input type="url" name="content" placeholder="https://example.com/article" value="{{ request.POST.content }}"
+                class="w-full p-4 border-2 border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+        </div>
+
+        <!-- Input Image -->
+        <div id="image-input" class="input-section hidden">
+            <div class="border-2 border-dashed border-teal-300 rounded-lg p-8 text-center bg-teal-50 hover:bg-teal-100 transition-colors">
+                <label for="image-upload" class="cursor-pointer flex flex-col items-center justify-center text-teal-700">
+                    <i class="fas fa-image text-5xl mb-3 text-teal-500"></i>
+                    <span class="text-lg font-medium">Sélectionnez une image ou glissez-déposez ici</span>
+                </label>
+                <input id="image-upload" type="file" name="image" accept="image/*" class="hidden">
+            </div>
+        </div>
+
+        <!-- Bouton d'analyse adaptatif -->
+        <button type="submit" class="w-full flex items-center justify-center gap-2 py-4 px-6 {% if rag_mode %}bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700{% else %}bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700{% endif %} text-white font-bold text-lg rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <i class="fas fa-{% if rag_mode %}magic{% else %}bolt{% endif %}"></i>
+            {% if rag_mode %}Analyser avec Intelligence Contextuelle{% else %}Analyser{% endif %}
+        </button>
+    </form>
+
+    <!-- Résultats de l'analyse avec distinction RAG/Standard -->
+    {% if analysis_result %}
+        <section class="bg-white rounded-xl shadow-lg p-6 mt-6">
+            <h2 class="text-2xl font-semibold mb-4 {% if analysis_mode == 'rag' %}text-purple-800{% else %}text-teal-800{% endif %} flex items-center">
+                <i class="fas fa-{% if analysis_mode == 'rag' %}brain text-purple-500{% else %}check-circle text-green-500{% endif %} mr-2"></i>
+                Résultat {% if analysis_mode == 'rag' %}RAG Intelligent{% else %}Standard{% endif %}
+            </h2>
+            
+            <!-- Score de confiance -->
+            {% if confidence %}
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium">Score de confiance :</span>
+                    <span class="font-bold {% if confidence >= 75 %}text-green-600{% elif confidence >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ confidence|floatformat:1 }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div class="h-3 rounded-full {% if confidence >= 75 %}bg-green-500{% elif confidence >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}" style="width: {{ confidence }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="space-y-3 text-gray-700 bg-gray-50 p-4 rounded-lg">
+                <pre class="whitespace-pre-wrap font-sans">{{ analysis_result }}</pre>
+            </div>
+            
+            <!-- Informations contextuelles RAG -->
+            {% if analysis_mode == 'rag' and sources_count > 0 %}
+            <div class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h3 class="font-semibold text-purple-800 flex items-center mb-2">
+                    <i class="fas fa-database mr-2"></i>Contexte Historique Utilisé
+                </h3>
+                <p class="text-purple-700 mb-2"><strong>{{ sources_count }}</strong> analyse(s) similaire(s) trouvée(s) dans l'historique FactGuard</p>
+                
+                {% if context_used %}
+                <details class="mt-2">
+                    <summary class="cursor-pointer text-purple-600 hover:text-purple-800 font-medium">
+                        <i class="fas fa-eye mr-1"></i>Voir le contexte utilisé par l'IA
+                    </summary>
+                    <div class="mt-2 p-3 bg-white border border-purple-200 rounded text-sm">
+                        <pre class="whitespace-pre-wrap">{{ context_used }}</pre>
+                    </div>
+                </details>
+                {% endif %}
+            </div>
+            {% elif analysis_mode == 'rag' %}
+            <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-yellow-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Analyse sans contexte historique :</strong> Aucune analyse similaire trouvée. Réponse basée sur les connaissances GPT-4o.
+                </p>
+            </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <!-- Messages d'erreur -->
+    {% if error_message %}
+        <section class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                <p class="text-red-700 font-semibold">{{ error_message }}</p>
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const buttons = document.querySelectorAll('.content-type-btn');
+        const contentTypeInput = document.getElementById('content_type');
+        const inputs = {
+            text: document.getElementById('text-input'),
+            link: document.getElementById('link-input'),
+            image: document.getElementById('image-input')
+        };
+
+        function setActiveButton(activeBtn) {
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+                btn.classList.add('border-teal-300');
+            });
+            activeBtn.classList.add('bg-teal-600', 'text-white', 'border-teal-600');
+            activeBtn.classList.remove('border-teal-300');
+        }
+
+        setActiveButton(document.querySelector('[data-type="text"]'));
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                setActiveButton(button);
+                const type = button.getAttribute('data-type');
+                contentTypeInput.value = type;
+
+                Object.keys(inputs).forEach(key => {
+                    if (key === type) {
+                        inputs[key].classList.remove('hidden');
+                    } else {
+                        inputs[key].classList.add('hidden');
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

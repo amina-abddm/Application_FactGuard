@@ -1,0 +1,15 @@
+Collecting azure-search-documents
+  Using cached azure_search_documents-11.5.3-py3-none-any.whl.metadata (23 kB)
+Requirement already satisfied: azure-core>=1.28.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-search-documents) (1.35.0)
+Requirement already satisfied: azure-common>=1.1 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-search-documents) (1.1.28)
+Requirement already satisfied: isodate>=0.6.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-search-documents) (0.7.2)
+Requirement already satisfied: typing-extensions>=4.6.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-search-documents) (4.14.1)
+Requirement already satisfied: requests>=2.21.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-core>=1.28.0->azure-search-documents) (2.32.4)
+Requirement already satisfied: six>=1.11.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-core>=1.28.0->azure-search-documents) (1.17.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core>=1.28.0->azure-search-documents) (3.4.3)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core>=1.28.0->azure-search-documents) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core>=1.28.0->azure-search-documents) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core>=1.28.0->azure-search-documents) (2025.8.3)
+Using cached azure_search_documents-11.5.3-py3-none-any.whl (298 kB)
+Installing collected packages: azure-search-documents
+Successfully installed azure-search-documents-11.5.3

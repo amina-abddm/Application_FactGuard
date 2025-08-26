@@ -1,0 +1,12 @@
+Collecting azure-core
+  Using cached azure_core-1.35.0-py3-none-any.whl.metadata (44 kB)
+Requirement already satisfied: requests>=2.21.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-core) (2.32.4)
+Requirement already satisfied: six>=1.11.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-core) (1.17.0)
+Requirement already satisfied: typing-extensions>=4.6.0 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from azure-core) (4.14.1)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core) (3.4.3)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in c:\users\utilisateur\desktop\application_factguard\venv_factguard\lib\site-packages (from requests>=2.21.0->azure-core) (2025.8.3)
+Using cached azure_core-1.35.0-py3-none-any.whl (210 kB)
+Installing collected packages: azure-core
+Successfully installed azure-core-1.35.0
