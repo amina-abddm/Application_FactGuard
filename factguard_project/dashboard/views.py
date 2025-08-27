@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import models
+import logging
 from django.utils import timezone
 from django.db.models import Count, Avg
 from django.contrib import messages
@@ -12,7 +13,6 @@ import sys
 # ============================================================================
 # IMPORTS ET CONFIGURATION DES SERVICES IA
 # ============================================================================
-
 # Import conditionnel du service RAG avec typage correct
 RAGServiceType = None
 RAG_AVAILABLE = False
@@ -27,7 +27,7 @@ except ImportError as e:
     RAG_AVAILABLE = False
     print(f" Service RAG non disponible: {e}")
 
-# Import conditionnel Azure OpenAI SDK
+# Import conditionnel Azure OpenAI SDK (NOUVEAU SYSTÈME UNIQUEMENT)
 try:
     from api.services.azure_openai_service import AzureOpenAIService
     AZURE_SDK_AVAILABLE = True
@@ -37,7 +37,10 @@ except ImportError as e:
     AZURE_SDK_AVAILABLE = False
     print(f" Erreur import AzureOpenAIService SDK: {e}")
 
-
+# SUPPRIMÉ : Import de l'ancien système factguard_azure
+# Plus besoin du fallback, migration complète vers SDK
+call_gpt_analysis = None
+print(" Migration complète vers Azure OpenAI SDK")
 # Définition d'un Protocol pour le typage
 class RAGServiceProtocol(Protocol):
     def analyze_with_context(self, query: str) -> dict:
@@ -163,24 +166,58 @@ def _extract_content_by_type(request, content_type):
     else:
         return request.POST.get('content', '').strip()
 
+# Mise à jour pour le RAG enrichi
+logger = logging.getLogger(__name__)
 def _perform_rag_analysis(content):
-    """Effectue une analyse RAG"""
-    print(" DEBUG: Utilisation du mode RAG")
+    """Effectue une analyse RAG enrichie avec Azure AI Search"""
+    print(" DEBUG: Utilisation du RAG enrichi avec Azure AI Search")
     
     if RAGServiceType is None:
-        raise RuntimeError("Le service RAG n'est pas disponible.")
+        raise RuntimeError("Le service RAG enrichi n'est pas disponible.")
     
-    rag_service: RAGServiceProtocol = RAGServiceType()
-    rag_result = rag_service.analyze_with_context(str(content))
-    
-    analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
-    additional_context = {
-        'analysis_result': analysis_result,
-        'sources_count': rag_result.get('sources_count', 0),
-        'context_used': rag_result.get('context_used', '')
-    }
-    
-    return analysis_result, additional_context
+    try:
+        from api.services.rag_service import EnhancedRAGService
+        enhanced_rag_service = EnhancedRAGService()
+        
+        # Analyse enrichie avec contexte
+        rag_result = enhanced_rag_service.analyze_with_context(
+            str(content), 
+            analysis_type="reliability"
+        )
+        
+        analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
+        additional_context = {
+            'analysis_result': analysis_result,
+            'sources_count': rag_result.get('sources_count', 0),
+            'context_used': rag_result.get('context_used', ''),
+            'sources': rag_result.get('sources', []),
+            'analysis_confidence': rag_result.get('analysis_confidence', 0.0)
+        }
+        
+        return analysis_result, additional_context
+        
+    except Exception as e:
+        logger.error(f" Erreur RAG enrichi: {e}")
+        
+        #  Fallback vers le RAG standard existant
+        try:
+            rag_service: RAGServiceProtocol = RAGServiceType()
+            rag_result = rag_service.analyze_with_context(str(content))
+            
+            analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
+            additional_context = {
+                'analysis_result': analysis_result,
+                'sources_count': rag_result.get('sources_count', 0),
+                'context_used': rag_result.get('context_used', '')
+            }
+            
+            return analysis_result, additional_context
+            
+        except Exception as fallback_error:
+            logger.error(f" Erreur RAG fallback: {fallback_error}")
+            raise RuntimeError(f"Échec du RAG enrichi et du fallback: {str(e)}, {str(fallback_error)}")
+
+
 
 def _perform_standard_analysis(content, content_type):
     """Effectue une analyse standard GPT-4o avec Azure SDK"""
