@@ -10,6 +10,7 @@ from typing import Optional, Protocol, TYPE_CHECKING
 import re
 import sys
 
+
 # ============================================================================
 # IMPORTS ET CONFIGURATION DES SERVICES IA
 # ============================================================================
@@ -17,30 +18,27 @@ import sys
 RAGServiceType = None
 RAG_AVAILABLE = False
 
+
 try:
     from api.services.rag_service import RAGService
     RAGServiceType = RAGService
     RAG_AVAILABLE = True
-    print(" Service RAG importé avec succès depuis api.services")
 except ImportError as e:
     RAGServiceType = None
     RAG_AVAILABLE = False
-    print(f" Service RAG non disponible: {e}")
 
-# Import conditionnel Azure OpenAI SDK (NOUVEAU SYSTÈME UNIQUEMENT)
+
+# Import conditionnel Azure OpenAI SDK 
 try:
     from api.services.azure_openai_service import AzureOpenAIService
     AZURE_SDK_AVAILABLE = True
-    print(" AzureOpenAIService SDK importé avec succès")
 except ImportError as e:
     AzureOpenAIService = None
     AZURE_SDK_AVAILABLE = False
-    print(f" Erreur import AzureOpenAIService SDK: {e}")
 
-# SUPPRIMÉ : Import de l'ancien système factguard_azure
-# Plus besoin du fallback, migration complète vers SDK
+
 call_gpt_analysis = None
-print(" Migration complète vers Azure OpenAI SDK")
+
 # Définition d'un Protocol pour le typage
 class RAGServiceProtocol(Protocol):
     def analyze_with_context(self, query: str) -> dict:
@@ -48,16 +46,17 @@ class RAGServiceProtocol(Protocol):
     def get_similar_analyses(self, query: str, limit: int = 5) -> list:
         ...
 
-print("PYTHONPATH :", sys.path)
 
 # ============================================================================
 # VUES PRINCIPALES
 # ============================================================================
 
+
 @login_required
 def dashboard_view(request):
     """Redirection vers analyzer - point d'entrée principal FactGuard"""
     return redirect('dashboard:analyzer')
+
 
 @login_required
 def analyzer_unified_view(request):
@@ -74,17 +73,12 @@ def analyzer_unified_view(request):
     }
     
     if request.method == 'POST':
-        print(f" DEBUG: Mode détecté = {'RAG' if is_rag_mode else 'Standard'}")
-        print(f" DEBUG: Données POST = {dict(request.POST)}")
-        
         # Récupération intelligente du contenu selon le type
         content_type = request.POST.get('content_type', 'text')
         analysis_mode = request.POST.get('analysis_mode', 'rag' if is_rag_mode else 'standard')
         
         # Extraction du contenu selon le type sélectionné
         content = _extract_content_by_type(request, content_type)
-        
-        print(f" DEBUG: Type = {content_type}, Contenu = '{str(content)[:100]}...'")
         
         if not content or (isinstance(content, str) and len(content) < 5):
             messages.error(request, "Veuillez saisir du contenu à analyser (minimum 5 caractères).")
@@ -98,7 +92,7 @@ def analyzer_unified_view(request):
                 context['analysis_mode'] = 'rag'
                 
                 sources_count = additional_context.get('sources_count', 0)
-                messages.success(request, f" Analyse RAG terminée avec {sources_count} source(s) contextuelle(s)!")
+                messages.success(request, f"Analyse RAG terminée avec {sources_count} source(s) contextuelle(s)!")
                 
             else:
                 analysis_result = _perform_standard_analysis(content, content_type)
@@ -106,14 +100,14 @@ def analyzer_unified_view(request):
                     'analysis_result': analysis_result,
                     'analysis_mode': 'standard'
                 })
-                messages.success(request, " Analyse standard terminée !")
-            
+                messages.success(request, "Analyse standard terminée !")
+                
             # Extraction du score de confiance et sauvegarde
-            confidence = extract_confidence_score(context['analysis_result'])
+            confidence = extract_confidence_score(context.get('analysis_result', ''))
             
             analysis = Analysis.objects.create(
-                text=str(content)[:1000],  # Limiter la taille pour la DB
-                result=context['analysis_result'],
+                text=str(content)[:1000],
+                result=context.get('analysis_result', ''),
                 confidence_score=confidence,
                 user=request.user,
                 content_type=content_type
@@ -125,18 +119,17 @@ def analyzer_unified_view(request):
                 'analysis': analysis
             })
             
-            print(f"💾 DEBUG: Analyse sauvegardée ID: {analysis.pk}")
-            
         except Exception as e:
-            print(f" DEBUG: Erreur lors de l'analyse: {e}")
-            messages.error(request, f" Erreur lors de l'analyse : {str(e)}")
+            messages.error(request, f"Erreur lors de l'analyse : {str(e)}")
             context['error_message'] = str(e)
     
     return render(request, 'dashboard/analyzer_unified.html', context)
 
+
 # ============================================================================
 # FONCTIONS UTILITAIRES
 # ============================================================================
+
 
 def _get_azure_service():
     """Retourne une instance du service Azure ou None si indisponible"""
@@ -147,12 +140,11 @@ def _get_azure_service():
         service = AzureOpenAIService()
         if service.is_available():
             return service
-        else:
-            print(" Service Azure SDK non disponible")
     except Exception as e:
-        print(f" Erreur initialisation Azure service: {e}")
+        pass
     
     return None
+
 
 def _extract_content_by_type(request, content_type):
     """Extrait le contenu selon le type sélectionné"""
@@ -166,24 +158,20 @@ def _extract_content_by_type(request, content_type):
     else:
         return request.POST.get('content', '').strip()
 
-# Mise à jour pour le RAG enrichi
+
 logger = logging.getLogger(__name__)
+
 def _perform_rag_analysis(content):
     """Effectue une analyse RAG enrichie avec Azure AI Search"""
-    print(" DEBUG: Utilisation du RAG enrichi avec Azure AI Search")
     
     if RAGServiceType is None:
         raise RuntimeError("Le service RAG enrichi n'est pas disponible.")
     
     try:
-        from api.services.rag_service import EnhancedRAGService
-        enhanced_rag_service = EnhancedRAGService()
+        rag_service = RAGServiceType()
         
         # Analyse enrichie avec contexte
-        rag_result = enhanced_rag_service.analyze_with_context(
-            str(content), 
-            analysis_type="reliability"
-        )
+        rag_result = rag_service.analyze_with_context(str(content))
         
         analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
         additional_context = {
@@ -191,15 +179,15 @@ def _perform_rag_analysis(content):
             'sources_count': rag_result.get('sources_count', 0),
             'context_used': rag_result.get('context_used', ''),
             'sources': rag_result.get('sources', []),
-            'analysis_confidence': rag_result.get('analysis_confidence', 0.0)
+            'analysis_confidence': rag_result.get('analysis_confidence', 0.8)
         }
         
         return analysis_result, additional_context
         
     except Exception as e:
-        logger.error(f" Erreur RAG enrichi: {e}")
+        logger.error(f"Erreur RAG enrichi: {e}")
         
-        #  Fallback vers le RAG standard existant
+        # Fallback vers le RAG standard existant
         try:
             rag_service: RAGServiceProtocol = RAGServiceType()
             rag_result = rag_service.analyze_with_context(str(content))
@@ -214,62 +202,56 @@ def _perform_rag_analysis(content):
             return analysis_result, additional_context
             
         except Exception as fallback_error:
-            logger.error(f" Erreur RAG fallback: {fallback_error}")
+            logger.error(f"Erreur RAG fallback: {fallback_error}")
             raise RuntimeError(f"Échec du RAG enrichi et du fallback: {str(e)}, {str(fallback_error)}")
-
 
 
 def _perform_standard_analysis(content, content_type):
     """Effectue une analyse standard GPT-4o avec Azure SDK"""
-    print("⚡ DEBUG: Utilisation du mode standard avec SDK Azure")
     
-    # Essai avec le nouveau SDK Azure
+    # Essai avec le  SDK Azure
     azure_service = _get_azure_service()
     
     if azure_service:
         try:
-            print(" Utilisation d'Azure OpenAI SDK")
-            
             if content_type == 'link':
                 return azure_service.analyze_information(
                     f"Analysez la fiabilité et la crédibilité de ce lien/site web : {content}",
                     content_type='link'
                 )
             elif content_type == 'image':
-                return f" Analyse d'image en développement pour : {content}"
+                return f"Analyse d'image en développement pour : {content}"
             else:
                 return azure_service.analyze_information(str(content), content_type='text')
                 
         except Exception as e:
-            print(f" Erreur Azure SDK: {e}")
-            # Continue vers le fallback
+            pass
     
     # Fallback vers l'ancien système
-    print(" Fallback vers l'ancien système")
     if call_gpt_analysis:
         try:
             if content_type == 'link':
                 prompt = f"Analysez la fiabilité et la crédibilité de ce lien/site web : {content}"
                 return call_gpt_analysis(prompt)
             elif content_type == 'image':
-                return f"📸 Analyse d'image en développement pour : {content}"
+                return f"Analyse d'image en développement pour : {content}"
             else:
                 return call_gpt_analysis(str(content))
         except Exception as e:
-            print(f" Erreur ancien système: {e}")
-            return f" Erreur lors de l'analyse : {str(e)}"
+            return f"Erreur lors de l'analyse : {str(e)}"
     else:
-        return " Aucun service d'analyse disponible. Veuillez vérifier la configuration Azure OpenAI."
+        return "Aucun service d'analyse disponible. Veuillez vérifier la configuration Azure OpenAI."
+
 
 def extract_confidence_score(result):
     """Extrait le score de confiance du résultat GPT"""
     try:
         # Patterns pour extraire les scores de confiance
         patterns = [
-            r'(?:score|fiabilité)[:\s]*(\d+(?:\.\d+)?)\s*[/%]',
-            r'(\d+(?:\.\d+)?)\s*[/%]',
-            r'confiance[:\s]*(\d+(?:\.\d+)?)',
-            r'`(\d+(?:\.\d+)?)\s*%`'  # Pattern spécifique pour votre format
+            r'(?:score|fiabilité)[:]\s*([\d+(?:\.\d+)?)\s*[/%]',
+            r'([\d+(?:\.\d+)?)\s*[/%]',
+            r'confiance[:]\s*([\d+(?:\.\d+)?)',
+            r'`([\d+(?:\.\d+)?)\s*%`'
         ]
         
         result_str = str(result).lower()
@@ -282,24 +264,28 @@ def extract_confidence_score(result):
                 return score / 100 if score > 1 else score
                 
     except Exception as e:
-        print(f" Erreur extraction score: {e}")
+        pass
     
     # Score par défaut si aucun n'est trouvé
     return 0.0
 
+
 # ============================================================================
 # VUES EXISTANTES (inchangées)
 # ============================================================================
+
 
 @login_required
 def analyzer_view(request):
     """Vue analyzer standard - redirige vers la vue unifiée"""
     return analyzer_unified_view(request)
 
+
 @login_required
 def rag_analyzer_view(request):
     """Vue RAG analyzer - redirige vers la vue unifiée"""
     return analyzer_unified_view(request)
+
 
 @login_required
 def history_view(request):
@@ -307,8 +293,6 @@ def history_view(request):
     user = request.user
     all_analyses = Analysis.objects.filter(user=user).order_by('-created_at')
     total_count = all_analyses.count()
-    
-    print(f" Total analyses pour {user}: {total_count}")
     
     if not all_analyses.exists():
         return render(request, 'dashboard/history.html', {
@@ -324,6 +308,7 @@ def history_view(request):
         'analyses_all': all_analyses,
         'total_count': total_count,
     })
+
 
 @login_required
 def statistics_view(request):
@@ -391,6 +376,7 @@ def statistics_view(request):
     
     return render(request, 'dashboard/statistics.html', context)
 
+
 @login_required
 def delete_analysis_view(request, analysis_id):
     """Vue pour supprimer une analyse spécifique avec confirmation"""
@@ -398,13 +384,14 @@ def delete_analysis_view(request, analysis_id):
     
     if request.method == 'POST':
         analysis.delete()
-        messages.success(request, " Analyse supprimée avec succès !")
+        messages.success(request, "Analyse supprimée avec succès !")
         return redirect('dashboard:history')
     
     return render(request, 'dashboard/confirm_delete.html', {
         'analysis': analysis,
         'title': 'Supprimer une analyse'
     })
+
 
 @login_required
 def clear_all_history_view(request):
@@ -415,11 +402,13 @@ def clear_all_history_view(request):
     if request.method == 'POST':
         deleted_count = user_analyses.count()
         user_analyses.delete()
-        messages.success(request, f" {deleted_count} analyses supprimées avec succès !")
+        messages.success(request, f"{deleted_count} analyses supprimées avec succès !")
         return redirect('dashboard:history')
     
     return render(request, 'dashboard/confirm_delete.html', {
         'analyses_count': total_count,
         'title': "Vider tout l'historique"
-        })
+    })
+
+
 
