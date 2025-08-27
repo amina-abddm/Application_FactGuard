@@ -11,17 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
-
-
-
-
 import sys
 import os
-from pathlib import Path
 from dotenv import load_dotenv 
 
-# ➜  remonte de 3 niveaux pour pointer sur Application_FactGuard
+#   remonte de 3 niveaux pour pointer sur Application_FactGuard
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -31,8 +25,8 @@ print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affi
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 🔧 NOUVEAU : Chargement .env depuis azure/
-env_path = PROJECT_ROOT / 'factguard_azure' / '.env'
+#  Chargement .env depuis factguard_project/
+env_path = BASE_DIR / '.env'
 load_dotenv(env_path)
 
 # Debug multi-plateforme
@@ -40,16 +34,14 @@ print(f"OS: {os.name}")
 print(f"Chemin .env: {env_path}")
 print(f"Existe: {'OUI' if env_path.exists() else 'NON'}")
 
-# ✅ VOTRE CODE ICI - Configuration Azure Search
-AZURE_CONFIG_DIR = BASE_DIR.parent / 'factguard_azure'  # ✅ CORRECT
+# Configuration Azure Search
+AZURE_CONFIG_DIR = BASE_DIR.parent / 'factguard_azure'  
 AZURE_SEARCH_SCHEMA_FILE = AZURE_CONFIG_DIR / 'search_index_schema.json'
 
 # Variables d'environnement Azure (récupérées depuis .env)
 AZURE_SEARCH_ENDPOINT = os.getenv('AZURE_SEARCH_ENDPOINT')
 AZURE_SEARCH_API_KEY = os.getenv('AZURE_SEARCH_API_KEY')
 AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME', 'factguard-analyses')
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -61,7 +53,6 @@ SECRET_KEY = 'django-insecure-lnf=s!k^-qs#(39)=-+odx0j_tds!dfhm5^h7$anlcidw)leoe
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -106,7 +97,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'factguard_project.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
@@ -116,7 +106,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -136,7 +125,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -148,12 +136,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -163,7 +149,6 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # Redirections après login / logout
 LOGIN_REDIRECT_URL = "dashboard:analyzer"
