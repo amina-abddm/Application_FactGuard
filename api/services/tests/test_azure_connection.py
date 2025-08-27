@@ -1,23 +1,36 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Chargement explicite du fichier .env
-load_dotenv()
+# Chemin explicite vers le .env
+current_dir = Path(__file__).parent
+env_file = current_dir / '.env'
 
-print("🔍 Variables chargées :")
-print(f"AZURE_SEARCH_ENDPOINT: {os.getenv('AZURE_SEARCH_ENDPOINT')}")
-print(f"AZURE_SEARCH_API_KEY: {'***' + str(os.getenv('AZURE_SEARCH_API_KEY', ''))[-4:] if os.getenv('AZURE_SEARCH_API_KEY') else 'None'}")
-print(f"AZURE_OPENAI_ENDPOINT: {os.getenv('AZURE_OPENAI_ENDPOINT')}")
-print(f"AZURE_OPENAI_API_KEY: {'***' + str(os.getenv('AZURE_OPENAI_API_KEY', ''))[-4:] if os.getenv('AZURE_OPENAI_API_KEY') else 'None'}")
+print(f"📁 Dossier courant: {current_dir}")
+print(f"📄 Fichier .env: {env_file}")
+print(f"✅ Fichier existe: {env_file.exists()}")
 
-if os.getenv('AZURE_SEARCH_ENDPOINT') and os.getenv('AZURE_SEARCH_API_KEY'):
-    print(" Variables Azure Search correctement chargées!")
+if env_file.exists():
+    # Chargement avec chemin explicite
+    result = load_dotenv(dotenv_path=env_file, override=True)
+    print(f"🔄 Chargement réussi: {result}")
+    
+    # Test des variables
+    print("\n🔍 Variables après chargement:")
+    vars_to_test = [
+        'AZURE_SEARCH_ENDPOINT',
+        'AZURE_SEARCH_API_KEY', 
+        'AZURE_OPENAI_ENDPOINT',
+        'AZURE_OPENAI_API_KEY'
+    ]
+    
+    for var in vars_to_test:
+        value = os.getenv(var)
+        if value:
+            print(f"✅ {var}: {value[:10]}...{value[-4:]}")
+        else:
+            print(f"❌ {var}: None")
 else:
-    print(" Variables Azure Search manquantes")
-
-if os.getenv('AZURE_OPENAI_ENDPOINT') and os.getenv('AZURE_OPENAI_API_KEY'):
-    print(" Variables Azure OpenAI correctement chargées!")
-else:
-    print(" Variables Azure OpenAI manquantes")
+    print("❌ Fichier .env introuvable !")
 
 
