@@ -37,13 +37,6 @@ except ImportError as e:
     AZURE_SDK_AVAILABLE = False
     print(f" Erreur import AzureOpenAIService SDK: {e}")
 
-# Import conditionnel de l'ancien système (fallback)
-try:
-    from factguard_azure.azure_openai import analyse_information as call_gpt_analysis
-    print(" call_gpt_analysis (fallback) importé avec succès")
-except ImportError as e:
-    call_gpt_analysis = None
-    print(f" Erreur import call_gpt_analysis (fallback): {e}")
 
 # Définition d'un Protocol pour le typage
 class RAGServiceProtocol(Protocol):
@@ -390,6 +383,6 @@ def clear_all_history_view(request):
     
     return render(request, 'dashboard/confirm_delete.html', {
         'analyses_count': total_count,
-        'title': 'Vider tout l\\'historique'
+        'title': "Vider tout l'historique"
         })
 
