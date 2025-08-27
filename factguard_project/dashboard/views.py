@@ -34,11 +34,6 @@ try:
 except ImportError as e:
     print(f" Erreur import AzureService: {e}")
 
-try:
-    from factguard_azure.azure_openai import analyse_information as call_gpt_analysis
-    print(" call_gpt_analysis importé avec succès")
-except ImportError as e:
-    print(f" Erreur import call_gpt_analysis: {e}")
 
 # Définition d'un Protocol pour le typage
 class RAGServiceProtocol(Protocol):
