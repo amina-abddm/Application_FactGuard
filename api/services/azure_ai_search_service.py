@@ -6,7 +6,16 @@ from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.models import VectorizedQuery
 from azure.core.credentials import AzureKeyCredential
-from azure.search.documents.indexes.models import *
+from azure.search.documents.indexes.models import (
+    SimpleField,
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    VectorSearch,
+    VectorSearchProfile,
+    HnswAlgorithmConfiguration,
+    SearchIndex
+)
 from dotenv import load_dotenv
 
 load_dotenv()

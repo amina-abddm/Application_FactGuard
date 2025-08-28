@@ -1,4 +1,4 @@
-# api/services/enhanced_rag_service.py
+# api/services/rag_service.py
 from typing import Dict, List, Any
 from .azure_ai_search_service import FactGuardSearchService
 from .azure_openai_service import AzureOpenAIService
@@ -50,7 +50,7 @@ class RAGService:
             }
             
         except Exception as e:
-            logger.error(f" Erreur RAG enrichi: {e}")
+            logger.error(f"❌ Erreur RAG enrichi: {e}")
             return {
                 'analysis_result': f"Erreur lors de l'analyse contextuelle: {str(e)}",
                 'sources_count': 0,
@@ -62,6 +62,11 @@ class RAGService:
     def _search_relevant_sources(self, query: str, top_k: int = 5) -> List[Dict]:
         """Recherche hybride de sources pertinentes"""
         try:
+            # ✅ CORRECTION : Vérification de sécurité
+            if not self.search_service or not hasattr(self.search_service, 'search_client') or not self.search_service.search_client:
+                logger.warning("❌ Azure Search client non disponible")
+                return []
+            
             # Recherche hybride (texte + vecteur sémantique)
             results = self.search_service.search_client.search(
                 search_text=query,
@@ -69,16 +74,16 @@ class RAGService:
                 search_mode="all",
                 include_total_count=True,
                 select=["title", "content", "url", "source", "reliability_score", "category", "date_published"],
-                highlight_fields=["content", "title"],
-                semantic_configuration_name="default",  # Si configuré
-                query_type="semantic"  # Recherche sémantique
+                highlight_fields="content,title",  # ✅ CORRECTION : String au lieu de liste
+                # semantic_configuration_name="default",  # ✅ Commenté temporairement
+                # query_type="semantic"  # ✅ Commenté temporairement
             )
             
             sources = []
             for result in results:
                 sources.append({
                     'title': result.get('title', ''),
-                    'content': result.get('content', '')[:1000],  # Limiter le contenu
+                    'content': result.get('content', '')[:1000],
                     'url': result.get('url', ''),
                     'source': result.get('source', ''),
                     'reliability_score': result.get('reliability_score', 0),
@@ -92,7 +97,7 @@ class RAGService:
             return sources
             
         except Exception as e:
-            logger.error(f" Erreur recherche sources: {e}")
+            logger.error(f"❌ Erreur recherche sources: {e}")
             return []
     
     def _build_enhanced_context(self, sources: List[Dict], analysis_type: str) -> str:
@@ -121,7 +126,7 @@ Score de pertinence: {source.get('@search.score', 0):.2f}
         return "\n".join(context_parts)
     
     def _perform_contextual_analysis(self, query: str, context: str, 
-                                analysis_type: str, sources: List[Dict]) -> str:
+                                   analysis_type: str, sources: List[Dict]) -> str:
         """Effectue l'analyse avec le contexte enrichi"""
         
         # Prompts spécialisés selon le type d'analyse
@@ -188,3 +193,11 @@ Réponds selon le format FactGuard habituel avec emojis et structure claire.
         # Score de confiance pondéré
         confidence = (avg_reliability * 0.5 + source_diversity * 0.3 + (avg_relevance/100) * 0.2)
         return min(confidence, 1.0)  # Plafonner à 1.0
+
+    def get_similar_analyses(self, query: str, limit: int = 5) -> List[Dict]:
+        """Recherche d'analyses similaires (implémentation pour le protocole)"""
+        try:
+            return self._search_relevant_sources(query, top_k=limit)
+        except Exception as e:
+            logger.error(f"❌ Erreur recherche analyses similaires: {e}")
+            return []
