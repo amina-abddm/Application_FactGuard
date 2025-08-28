@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=...",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AZURE_SEARCH_ENDPOINT": "https://votre-service.search.windows.net",
+    "AZURE_SEARCH_INDEX_NAME": "factguard-index", 
+    "AZURE_SEARCH_API_KEY": "votre-cle-api"
+  }
+}
