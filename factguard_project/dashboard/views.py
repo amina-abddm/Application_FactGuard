@@ -311,7 +311,7 @@ def history_view(request):
 
 
 @login_required
-def statistics_view(request):
+def statistics_view(request): 
     """Page statistiques complète - FactGuard"""
     
     user_analyses = Analysis.objects.filter(user=request.user)
