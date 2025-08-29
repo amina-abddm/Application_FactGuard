@@ -1,5 +1,5 @@
 import openai
-from .azure_ai_search_service import FactGuardSearchService
+from azure_ai_search_service import FactGuardSearchService
 from .azure_openai_service import AzureOpenAIService
 import hashlib
 from datetime import datetime
@@ -21,7 +21,7 @@ class FactGuardContentIndexer:
         """Génère un embedding pour le texte donné"""
         try:
             response = self.openai_service.client.embeddings.create(
-                model="text-embedding-ada-002",  #  modèle d'embedding déployé
+                model="text-embedding-ada-002",  #   modèle d'embedding déployé
                 input=text
             )
             return response.data[0].embedding

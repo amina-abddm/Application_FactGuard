@@ -1,14 +1,23 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential, ClientSecretCredential  # Ajout de l'import
+# En haut du fichier, ajoutez :
+from dotenv import load_dotenv
+load_dotenv()
 
-# Chemin explicite vers le .env
-current_dir = Path(__file__).parent
-env_file = current_dir / '.env'
+# Remplacez la ligne DefaultAzureCredential() par :
+if os.getenv('AZURE_CLIENT_SECRET'):
+    credential = ClientSecretCredential(
+        tenant_id=os.getenv('AZURE_TENANT_ID'),
+        client_id=os.getenv('AZURE_CLIENT_ID'),
+        client_secret=os.getenv('AZURE_CLIENT_SECRET')
+    )
+else:
+    credential = DefaultAzureCredential()
 
-print(f"📁 Dossier courant: {current_dir}")
-print(f"📄 Fichier .env: {env_file}")
-print(f"✅ Fichier existe: {env_file.exists()}")
+# Définir le chemin du fichier .env
+env_file = Path('.') / '.env'
 
 if env_file.exists():
     # Chargement avec chemin explicite
