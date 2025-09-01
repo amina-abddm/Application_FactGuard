@@ -1,4 +1,3 @@
-# dashboard/models.py
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -13,7 +12,7 @@ class Analysis(models.Model):
     result = models.TextField(verbose_name="Résultat de l'analyse")
     confidence_score = models.FloatField(default=0.0, verbose_name="Score de confiance")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Utilisateur")
-    content_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='text', verbose_name="Type de contenu")  # ✅ NOUVEAU CHAMP
+    content_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='text', verbose_name="Type de contenu")  
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     
     class Meta:

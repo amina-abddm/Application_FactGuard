@@ -32,11 +32,11 @@ def test_factguard_authentication():
         database = 'factguard-db'
         
         connection_string = (
-            f"Driver={{ODBC Driver 17 for SQL Server}};"  # ← CHANGEMENT ICI
+            f"Driver={{ODBC Driver 17 for SQL Server}};" 
             f"Server=tcp:{server},1433;"
             f"Database={database};"
             f"Encrypt=yes;"
-            f"TrustServerCertificate=yes;"  # ← Ajouté pour compatibilité
+            f"TrustServerCertificate=yes;"  
         )
         
         conn = pyodbc.connect(connection_string, attrs_before={1256: token.token})

@@ -21,7 +21,7 @@ def test_different_configs():
     )
     
     token = credential.get_token("https://database.windows.net//.default")
-    print("✅ Token obtenu avec succès")
+    print(" Token obtenu avec succès")
     
     server = 'factguard-sqlserver.database.windows.net'
     database = 'factguard-db'
@@ -31,36 +31,36 @@ def test_different_configs():
     try:
         conn_str = f"Driver={{ODBC Driver 17 for SQL Server}};Server={server},1433;Database={database};"
         conn = pyodbc.connect(conn_str, attrs_before={1256: token.token})
-        print("✅ Test 1 réussi - Configuration simplifiée OK")
+        print(" Test 1 réussi - Configuration simplifiée OK")
         conn.close()
         return True
     except Exception as e:
-        print(f"❌ Test 1 échoué : {e}")
+        print(f" Test 1 échoué : {e}")
     
     # Test 2 : Avec TrustServerCertificate
-    print("\n🧪 Test 2 : Avec TrustServerCertificate...")
+    print("\n Test 2 : Avec TrustServerCertificate...")
     try:
         conn_str = f"Driver={{ODBC Driver 17 for SQL Server}};Server={server},1433;Database={database};TrustServerCertificate=yes;"
         conn = pyodbc.connect(conn_str, attrs_before={1256: token.token})
-        print("✅ Test 2 réussi - TrustServerCertificate OK")
+        print(" Test 2 réussi - TrustServerCertificate OK")
         conn.close()
         return True
     except Exception as e:
-        print(f"❌ Test 2 échoué : {e}")
+        print(f" Test 2 échoué : {e}")
     
     # Test 3 : Format tcp explicite
     print("\n🧪 Test 3 : Format tcp explicite...")
     try:
         conn_str = f"Driver={{ODBC Driver 17 for SQL Server}};Server=tcp:{server},1433;Database={database};TrustServerCertificate=yes;"
         conn = pyodbc.connect(conn_str, attrs_before={1256: token.token})
-        print("✅ Test 3 réussi - Format tcp OK")
+        print(" Test 3 réussi - Format tcp OK")
         conn.close()
         return True
     except Exception as e:
-        print(f"❌ Test 3 échoué : {e}")
+        print(f" Test 3 échoué : {e}")
     
-    print("\n❌ Tous les tests ont échoué")
-    print("💡 Vérifiez les permissions de votre Service Principal dans Azure Portal")
+    print("\n Tous les tests ont échoué")
+    print(" Vérifiez les permissions de votre Service Principal dans Azure Portal")
     return False
 
 if __name__ == "__main__":
