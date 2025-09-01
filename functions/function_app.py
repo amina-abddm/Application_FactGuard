@@ -1,4 +1,3 @@
-# test_azure_connection_interactive.py
 from azure.identity import InteractiveBrowserCredential
 import pyodbc
 
