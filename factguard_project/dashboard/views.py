@@ -20,12 +20,21 @@ RAG_AVAILABLE = False
 
 
 try:
+    # Import du service RAG complet
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
+    
     from api.services.rag_service import RAGService
+    from api.services.content_indexer import FactGuardContentIndexer
+    
     RAGServiceType = RAGService
     RAG_AVAILABLE = True
 except ImportError as e:
+    print(f"RAG service non disponible: {e}")
     RAGServiceType = None
     RAG_AVAILABLE = False
+
 
 
 # Import conditionnel Azure OpenAI SDK 
@@ -112,6 +121,21 @@ def analyzer_unified_view(request):
                 user=request.user,
                 content_type=content_type
             )
+
+            # AUTO-INDEXATION pour enrichir la base RAG
+            if analysis_mode == 'rag':
+                try:
+                    _auto_index_analysis(analysis)
+                    print(f"Analyse {analysis.id} ajoutée à la base de connaissances RAG")
+                except Exception as e:
+                    print(f"Erreur auto-indexation: {e}")
+            
+            context.update({
+                'confidence': confidence * 100 if confidence < 1 else confidence,
+                'query_analyzed': content,
+                'analysis': analysis
+            })
+
             
             context.update({
                 'confidence': confidence * 100 if confidence < 1 else confidence,
@@ -165,45 +189,59 @@ def _perform_rag_analysis(content):
     """Effectue une analyse RAG enrichie avec Azure AI Search"""
     
     if RAGServiceType is None:
-        raise RuntimeError("Le service RAG enrichi n'est pas disponible.")
+        raise RuntimeError("Le service RAG n'est pas disponible.")
     
     try:
+        print(f"Démarrage analyse RAG pour: {content[:50]}...")
+        
+        # Initialiser le service RAG
         rag_service = RAGServiceType()
         
-        # Analyse enrichie avec contexte
-        rag_result = rag_service.analyze_with_context(str(content))
+        # Analyse avec contexte historique - ADAPTATION pour votre service existant
+        rag_result = rag_service.analyze_with_context(str(content), analysis_type="reliability")
         
+        # Récupération des données selon votre structure existante
         analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
+        sources_count = rag_result.get('sources_count', 0)
+        context_used = rag_result.get('context_used', '')
+        confidence_raw = rag_result.get('analysis_confidence', 0.7)
+        
+        # Conversion confidence en pourcentage
+        confidence = int(confidence_raw * 100) if confidence_raw <= 1 else int(confidence_raw)
+        
+        print(f"Analyse RAG terminée - {sources_count} sources utilisées")
+        
         additional_context = {
             'analysis_result': analysis_result,
-            'sources_count': rag_result.get('sources_count', 0),
-            'context_used': rag_result.get('context_used', ''),
+            'sources_count': sources_count,
+            'context_used': context_used,
+            'confidence': confidence,
             'sources': rag_result.get('sources', []),
-            'analysis_confidence': rag_result.get('analysis_confidence', 0.8)
+            'analysis_confidence': confidence / 100
         }
         
         return analysis_result, additional_context
         
     except Exception as e:
-        logger.error(f"Erreur RAG enrichi: {e}")
+        logger.error(f"Erreur analyse RAG: {e}")
         
-        # Fallback vers le RAG standard existant
+        # Fallback vers analyse standard
         try:
-            rag_service: RAGServiceProtocol = RAGServiceType()
-            rag_result = rag_service.analyze_with_context(str(content))
-            
-            analysis_result = rag_result.get('analysis_result', 'Pas de résultat')
-            additional_context = {
-                'analysis_result': analysis_result,
-                'sources_count': rag_result.get('sources_count', 0),
-                'context_used': rag_result.get('context_used', '')
-            }
-            
-            return analysis_result, additional_context
-            
+            azure_service = _get_azure_service()
+            if azure_service:
+                fallback_result = azure_service.analyze_information(str(content), content_type='text')
+                return fallback_result, {
+                    'analysis_result': fallback_result,
+                    'sources_count': 0,
+                    'context_used': 'Fallback - Aucun contexte historique',
+                    'confidence': 60
+                }
+            else:
+                raise RuntimeError(f"Service RAG et fallback Azure indisponibles: {str(e)}")
+                
         except Exception as fallback_error:
-            logger.error(f"Erreur RAG fallback: {fallback_error}")
-            raise RuntimeError(f"Échec du RAG enrichi et du fallback: {str(e)}, {str(fallback_error)}")
+            logger.error(f"Erreur fallback: {fallback_error}")
+            raise RuntimeError(f"Échec RAG et fallback: {str(e)}")
 
 
 def _perform_standard_analysis(content, content_type):
@@ -268,6 +306,33 @@ def extract_confidence_score(result):
     
     # Score par défaut si aucun n'est trouvé
     return 0.0
+
+
+def _auto_index_analysis(analysis_obj):
+    """Auto-indexation de l'analyse dans Azure AI Search pour enrichir la base RAG"""
+    try:
+        if not RAG_AVAILABLE:
+            return False
+            
+        analysis_id = getattr(analysis_obj, 'id', 'ID inconnu')
+        print(f"Auto-indexation de l'analyse ID: {analysis_id}")
+        
+        # Initialiser l'indexeur
+        indexer = FactGuardContentIndexer()
+        
+        # Indexer l'analyse
+        success = indexer.index_analysis(analysis_obj)
+        
+        if success:
+            print(f"Analyse {analysis_id} indexée avec succès")
+        else:
+            print(f"Échec indexation analyse {analysis_id}")
+            
+        return success
+        
+    except Exception as e:
+        print(f"Erreur auto-indexation: {e}")
+        return False
 
 
 # ============================================================================

@@ -15,6 +15,7 @@ import sys
 import os
 from dotenv import load_dotenv 
 
+
 #   remonte de 3 niveaux pour pointer sur Application_FactGuard
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -43,6 +44,30 @@ AZURE_SEARCH_ENDPOINT = os.getenv('AZURE_SEARCH_ENDPOINT')
 AZURE_SEARCH_API_KEY = os.getenv('AZURE_SEARCH_API_KEY')
 AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME', 'factguard-analyses')
 
+from azure.identity import DefaultAzureCredential
+
+if os.getenv('USE_AZURE_IDENTITY') == 'true':
+    # Pas de mot de passe avec Managed Identity
+    azure_credential = DefaultAzureCredential()
+    
+    # Obtenir le token d'accès pour PostgreSQL
+    token = azure_credential.get_token("https://ossrdbms-aad.database.windows.net")
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DBNAME'),
+            'USER': os.getenv('DBUSER'),
+            'PASSWORD': os.getenv('DBPASS'),
+            'HOST': os.getenv('DBHOST'),
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
+    }
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -66,6 +91,7 @@ INSTALLED_APPS = [
     'home',  
     'dashboard',
     'recommendations',
+    'data_pipeline',
 ]
 
 MIDDLEWARE = [
