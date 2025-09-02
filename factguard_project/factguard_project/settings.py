@@ -11,17 +11,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 # config pour KeyVault
-import sys
 import os
+import sys
 from pathlib import Path
-from config.secrets import secrets_manager
 
-
-# Build paths inside the project
+# Build paths inside the project.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Ajouter le répertoire racine au PYTHONPATH
-sys.path.insert(0, str(BASE_DIR))
+
+PROJECT_ROOT = BASE_DIR.parent  # Remonte d'un niveau vers Application_FactGuard/
+sys.path.insert(0, str(PROJECT_ROOT))
 
 #  importe config
 try:
@@ -58,25 +57,78 @@ print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affi
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-#  Chargement .env depuis factguard_project/
-env_path = BASE_DIR / '.env'
-load_dotenv(env_path)
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
 
-# Debug multi-plateforme
-print(f"OS: {os.name}")
-print(f"Chemin .env: {env_path}")
-print(f"Existe: {'OUI' if env_path.exists() else 'NON'}")
+# Build paths
+BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-# Configuration Azure Search
-AZURE_CONFIG_DIR = BASE_DIR.parent / 'factguard_azure'  
-AZURE_SEARCH_SCHEMA_FILE = AZURE_CONFIG_DIR / 'search_index_schema.json'
+# Chargement sécurisé des secrets
+try:
+    from config.secrets import secrets_manager
+    USE_KEY_VAULT = True
+    print("🔐 Azure Key Vault configuré avec succès")
+except ImportError as e:
+    USE_KEY_VAULT = False
+    print(f"⚠️ Fallback vers variables d'environnement: {e}")
 
-# Variables d'environnement Azure (récupérées depuis .env)
-AZURE_SEARCH_ENDPOINT = os.getenv('AZURE_SEARCH_ENDPOINT')
-AZURE_SEARCH_API_KEY = os.getenv('AZURE_SEARCH_API_KEY')
-AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME', 'factguard-analyses')
-SECRET_KEY = get_secret('SECRET-KEY')
-AZURE_SEARCH_ADMIN_KEY = get_secret('AZURE-SEARCH-ADMIN-KEY')
+load_dotenv()
+
+def get_secret(secret_name, env_name=None):
+    if USE_KEY_VAULT:
+        return secrets_manager.get_secret(secret_name, env_name or secret_name)
+    return os.getenv(env_name or secret_name)
+
+# === RÉCUPÉRATION DES SECRETS ===
+SECRET_KEY = get_secret('SECRET-KEY', 'SECRET_KEY')
+
+# Azure OpenAI
+AZURE_OPENAI_API_KEY = get_secret('AZURE-OPENAI-API-KEY', 'AZURE_OPENAI_API_KEY')
+AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_OPENAI_ENDPOINT')
+AZURE_OPENAI_API_VERSION = os.getenv('AZURE_OPENAI_API_VERSION')
+AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv('AZURE_OPENAI_DEPLOYMENT_NAME')
+
+# Azure Search
+AZURE_SEARCH_ENDPOINT = get_secret('AZURE-SEARCH-ENDPOINT', 'AZURE_SEARCH_ENDPOINT')
+AZURE_SEARCH_ADMIN_KEY = get_secret('AZURE-SEARCH-ADMIN-KEY', 'AZURE_SEARCH_ADMIN_KEY')
+AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME')
+
+# News API
+NEWS_API_KEY = get_secret('NEWS-API-KEY', 'NEWS_API_KEY')
+
+# Monitoring
+APPLICATIONINSIGHTS_CONNECTION_STRING = get_secret('APPLICATIONINSIGHTS-CONNECTION-STRING', 'APPLICATIONINSIGHTS_CONNECTION_STRING')
+
+# === ALIAS POUR COMPATIBILITÉ ===
+AZURE_SEARCH_API_KEY = AZURE_SEARCH_ADMIN_KEY
+
+# === INJECTION DANS OS.ENVIRON POUR LE CODE MÉTIER ===
+# (Nécessaire car certains modules utilisent os.getenv directement)
+environment_mappings = {
+    'AZURE_OPENAI_API_KEY': AZURE_OPENAI_API_KEY,
+    'AZURE_OPENAI_ENDPOINT': AZURE_OPENAI_ENDPOINT,
+    'AZURE_OPENAI_API_VERSION': AZURE_OPENAI_API_VERSION,
+    'AZURE_OPENAI_DEPLOYMENT_NAME': AZURE_OPENAI_DEPLOYMENT_NAME,
+    
+    'AZURE_SEARCH_API_KEY': AZURE_SEARCH_API_KEY,
+    'AZURE_SEARCH_ENDPOINT': AZURE_SEARCH_ENDPOINT,
+    'AZURE_SEARCH_ADMIN_KEY': AZURE_SEARCH_ADMIN_KEY,
+    'AZURE_SEARCH_INDEX_NAME': AZURE_SEARCH_INDEX_NAME,
+    
+    'NEWS_API_KEY': NEWS_API_KEY,
+    
+    'APPLICATIONINSIGHTS_CONNECTION_STRING': APPLICATIONINSIGHTS_CONNECTION_STRING,
+}
+
+# Injecter dans os.environ
+for key, value in environment_mappings.items():
+    if value:
+        os.environ[key] = str(value)
+
 
 
 

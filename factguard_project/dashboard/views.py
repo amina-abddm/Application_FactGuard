@@ -483,7 +483,7 @@ logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
 
 def health(request):
-    logger.info("✅ Health endpoint called")
+    logger.info(" Health endpoint called")
     with tracer.start_as_current_span("factguard.health") as span:
         span.set_attribute("feature", "health_check")
     return HttpResponse("OK", content_type="text/plain")
