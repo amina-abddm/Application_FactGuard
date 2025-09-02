@@ -39,6 +39,7 @@ env.bak/
 venv.bak/
 .venv/
 .env
+venv_factguard/ 
 
 # Visual Studio Code
 .vscode/
@@ -68,3 +69,7 @@ venv.bak/
 # CSV avec données sensibles
 test_results.csv
 user_data.csv
+
+
+local.settings.json
+*.log
