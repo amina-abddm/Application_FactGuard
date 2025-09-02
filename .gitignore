@@ -70,3 +70,6 @@ venv_factguard/
 test_results.csv
 user_data.csv
 
+
+local.settings.json
+*.log

@@ -1,10 +1,14 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=...",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "AZURE_SEARCH_ENDPOINT": "https://votre-service.search.windows.net",
-    "AZURE_SEARCH_INDEX_NAME": "factguard-index", 
-    "AZURE_SEARCH_API_KEY": "votre-cle-api"
+    "AZURE_SEARCH_INDEX_NAME": "factguard-index",
+    "AZURE_SEARCH_API_KEY": "votre-cle-api",
+    "DBHOST": "factguard-sqlserver.postgres.database.azure.com",
+    "DBNAME": "factguard-db",
+    "DBUSER": "django",
+    "DBPASS": "FactGuard2025!"
   }
 }
