@@ -10,6 +10,38 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+# config pour KeyVault
+import sys
+import os
+from pathlib import Path
+from config.secrets import secrets_manager
+
+
+# Build paths inside the project
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Ajouter le répertoire racine au PYTHONPATH
+sys.path.insert(0, str(BASE_DIR))
+
+#  importe config
+try:
+    from config.secrets import secrets_manager
+    USE_KEY_VAULT = True
+    print(" Azure Key Vault configuré avec succès")
+except ImportError as e:
+    USE_KEY_VAULT = False
+    print(f" Fallback vers variables d'environnement: {e}")
+
+# Fonction helper pour récupérer les secrets
+def get_secret(secret_name, env_name=None):
+    if USE_KEY_VAULT:
+        return secrets_manager.get_secret(secret_name, env_name or secret_name)
+    return os.getenv(env_name or secret_name)
+
+
+
+
+# Config pour ai-search
 from pathlib import Path
 import sys
 import os
@@ -43,29 +75,9 @@ AZURE_SEARCH_SCHEMA_FILE = AZURE_CONFIG_DIR / 'search_index_schema.json'
 AZURE_SEARCH_ENDPOINT = os.getenv('AZURE_SEARCH_ENDPOINT')
 AZURE_SEARCH_API_KEY = os.getenv('AZURE_SEARCH_API_KEY')
 AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME', 'factguard-analyses')
+SECRET_KEY = get_secret('SECRET-KEY')
+AZURE_SEARCH_ADMIN_KEY = get_secret('AZURE-SEARCH-ADMIN-KEY')
 
-from azure.identity import DefaultAzureCredential
-
-if os.getenv('USE_AZURE_IDENTITY') == 'true':
-    # Pas de mot de passe avec Managed Identity
-    azure_credential = DefaultAzureCredential()
-    
-    # Obtenir le token d'accès pour PostgreSQL
-    token = azure_credential.get_token("https://ossrdbms-aad.database.windows.net")
-    
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DBNAME'),
-            'USER': os.getenv('DBUSER'),
-            'PASSWORD': os.getenv('DBPASS'),
-            'HOST': os.getenv('DBHOST'),
-            'PORT': '5432',
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
-        }
-    }
 
 
 # Quick-start development settings - unsuitable for production
