@@ -54,7 +54,7 @@ class Analysis(models.Model):
         """Convertit l'instance en document pour Azure AI Search"""
         return {
         "id": str(self.pk),
-        "text": self.text,
+        "content": self.text,
         "result": self.result,
         "confidence_score": float(self.confidence_score),
         "content_type": self.content_type,

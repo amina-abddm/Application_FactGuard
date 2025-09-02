@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential, InteractiveBrowserCredential
 import psycopg2
 from psycopg2.extensions import connection
 import logging
@@ -13,39 +14,25 @@ import logging
 # Chargement des variables d'environnement
 load_dotenv()
 
+
 class FactGuardDataPipeline:
-    """Pipeline d'ingestion de données pour FactGuard"""
-    
-    def __init__(self):
-        self.db_connection: Optional[connection] = None
-        self.search_client: Optional[SearchClient] = None
-        
     def setup_connections(self):
-        """Initialise les connexions aux services Azure"""
+        """Initialise les connexions avec Azure Identity"""
         try:
-            # Récupération sécurisée des credentials PostgreSQL
-            db_host = os.getenv('DBHOST')
-            db_name = os.getenv('DBNAME')
-            db_user = os.getenv('DBUSER')
-            db_pass = os.getenv('DBPASS')
+            # Azure Identity pour PostgreSQL
+            if os.getenv('AZURE_CLIENT_ID'):
+                credential = DefaultAzureCredential()
+            else:
+                credential = InteractiveBrowserCredential()
             
-            if not all([db_host, db_name, db_user, db_pass]):
-                missing_vars = [
-                    var for var, val in [
-                        ('DBHOST', db_host),
-                        ('DBNAME', db_name), 
-                        ('DBUSER', db_user),
-                        ('DBPASS', db_pass)
-                    ] if not val
-                ]
-                raise ValueError(f"Credentials PostgreSQL manquants dans .env: {', '.join(missing_vars)}")
+            token = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
             
-            # Connexion PostgreSQL avec variables d'environnement
+            # Connexion PostgreSQL avec token
             self.db_connection = psycopg2.connect(
-                host=db_host,
-                database=db_name,
-                user=db_user,
-                password=db_pass,
+                host=os.getenv('DBHOST'),
+                database=os.getenv('DBNAME'),
+                user=os.getenv('DBUSER'),
+                password=token.token,  
                 port=5432,
                 sslmode='require'
             )
@@ -55,7 +42,7 @@ class FactGuardDataPipeline:
             index_name = os.getenv('AZURE_SEARCH_INDEX_NAME')
             api_key = os.getenv('AZURE_SEARCH_API_KEY')
             
-            # Vérification explicite - élimine l'erreur Pylance
+            # Vérification explicite - pour éliminer l'erreur Pylance
             if not endpoint:
                 raise ValueError("AZURE_SEARCH_ENDPOINT manquante dans .env")
             if not index_name:
@@ -77,10 +64,24 @@ class FactGuardDataPipeline:
     def fetch_news_sources(self) -> List[Dict[str, Any]]:
         """Récupère les actualités de sources fiables"""
         sources = [
-            "https://rss.cnn.com/rss/edition.rss",
+            # Sources françaises
+            
             "https://feeds.reuters.com/reuters/topNews", 
             "https://www.lemonde.fr/rss/une.xml",
-            "https://feeds.bbci.co.uk/news/rss.xml"
+            "https://www.francetvinfo.fr/titres.rss",
+            "https://www.20minutes.fr/rss/actu.xml",
+            "https://rss.lefigaro.fr/lefigaro/laune",
+            "https://www.liberation.fr/arc/outboundfeeds/rss/",
+            # Sources internationales
+
+            "https://rss.cnn.com/rss/edition.rss",
+            "https://feeds.reuters.com/reuters/topNews",
+            "https://feeds.bbci.co.uk/news/rss.xml",
+            # Sources européennes
+
+            "https://www.dw.com/fr/titres/rss",
+            "https://feeds.bbci.co.uk/news/rss.xml",
+            "https://rss.euronews.com/articles/fr/news.xml",
         ]
         
         all_articles = []
@@ -93,7 +94,7 @@ class FactGuardDataPipeline:
                     logging.warning(f"Aucun article trouvé pour {source_url}")
                     continue
                 
-                for entry in feed.entries[:5]:  # 5 articles récents par source
+                for entry in feed.entries[:10]:  # 10 articles récents par source
                     # Gestion sécurisée de la date de publication
                     published_parsed = getattr(entry, 'published_parsed', None)
                     if published_parsed is not None:
