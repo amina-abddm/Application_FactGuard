@@ -13,6 +13,40 @@
   <!-- CSS global -->
   <link rel="stylesheet" href="{% static 'dashboard/css/custom.css' %}" />
 
+  <!-- Dans base.html, ajoutez ceci dans le <head> -->
+<style>
+    /* Dark mode styles */
+    .dark {
+        background-color: #1f2937;
+        color: #f9fafb;
+    }
+    
+    .dark .bg-white {
+        background-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+    
+    .dark .text-gray-700 {
+        color: #d1d5db !important;
+    }
+    
+    .dark .bg-gray-50 {
+        background-color: #4b5563 !important;
+    }
+    
+    .dark .border-teal-300 {
+        border-color: #6b7280 !important;
+    }
+    
+    .dark textarea,
+    .dark input {
+        background-color: #4b5563 !important;
+        color: #f9fafb !important;
+        border-color: #6b7280 !important;
+    }
+</style>
+
+
   <!-- CSS spécifique à la page -->
   {% block extra_css %}{% endblock %}
 </head>
