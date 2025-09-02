@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import models
 import logging
+from django.http import HttpResponse
+from opentelemetry import trace
 from django.utils import timezone
 from django.db.models import Count, Avg
 from django.contrib import messages
@@ -477,3 +479,11 @@ def clear_all_history_view(request):
 
 
 
+logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
+
+def health(request):
+    logger.info("✅ Health endpoint called")
+    with tracer.start_as_current_span("factguard.health") as span:
+        span.set_attribute("feature", "health_check")
+    return HttpResponse("OK", content_type="text/plain")

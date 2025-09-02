@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from dashboard import views as dashboard_views
 
 
 urlpatterns = [
@@ -29,5 +30,6 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("recommendations/", include("recommendations.urls")),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("health/", dashboard_views.health, name="health"),
 ]
 
