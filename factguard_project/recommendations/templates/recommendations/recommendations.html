@@ -12,6 +12,14 @@
         </p>
     </div>
 
+    <!-- Bouton retour -->
+    <div class="mb-6">
+        <button onclick="window.history.back()" 
+                class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium">
+            ← Retour
+        </button>
+    </div>
+
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         {% for theme in themes %}
         <div class="cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 border-transparent hover:border-primary-200 bg-white rounded-lg shadow-md"
