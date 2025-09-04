@@ -27,8 +27,8 @@ try:
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
     
-    from api.services.rag_service import RAGService
-    from api.services.content_indexer import FactGuardContentIndexer
+    from llm_rag.rag_service import RAGService
+    from llm_rag.content_indexer import FactGuardContentIndexer
     
     RAGServiceType = RAGService
     RAG_AVAILABLE = True
@@ -41,7 +41,7 @@ except ImportError as e:
 
 # Import conditionnel Azure OpenAI SDK 
 try:
-    from api.services.azure_openai_service import AzureOpenAIService
+    from llm_rag.azure_openai_service import AzureOpenAIService
     AZURE_SDK_AVAILABLE = True
 except ImportError as e:
     AzureOpenAIService = None

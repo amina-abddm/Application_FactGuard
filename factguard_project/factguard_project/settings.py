@@ -10,53 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-# config pour KeyVault
-import os
-import sys
-from pathlib import Path
-
-# Build paths inside the project.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-PROJECT_ROOT = BASE_DIR.parent  # Remonte d'un niveau vers Application_FactGuard/
-sys.path.insert(0, str(PROJECT_ROOT))
-
-#  importe config
-try:
-    from config.secrets import secrets_manager
-    USE_KEY_VAULT = True
-    print(" Azure Key Vault configuré avec succès")
-except ImportError as e:
-    USE_KEY_VAULT = False
-    print(f" Fallback vers variables d'environnement: {e}")
-
-# Fonction helper pour récupérer les secrets
-def get_secret(secret_name, env_name=None):
-    if USE_KEY_VAULT:
-        return secrets_manager.get_secret(secret_name, env_name or secret_name)
-    return os.getenv(env_name or secret_name)
-
-
-
-
-# Config pour ai-search
-from pathlib import Path
-import sys
-import os
-from dotenv import load_dotenv 
-
-
-#   remonte de 3 niveaux pour pointer sur Application_FactGuard
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affichera au lancement
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 import os
 import sys
 from pathlib import Path
@@ -67,35 +20,38 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BASE_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))
+
 # Chargement sécurisé des secrets
 try:
     from config.secrets import secrets_manager
     USE_KEY_VAULT = True
-    print("🔐 Azure Key Vault configuré avec succès")
+    print(" Azure Key Vault configuré avec succès")
 except ImportError as e:
     USE_KEY_VAULT = False
-    print(f"⚠️ Fallback vers variables d'environnement: {e}")
+    print(f" Fallback vers variables d'environnement: {e}")
 
 load_dotenv()
+
 
 def get_secret(secret_name, env_name=None):
     if USE_KEY_VAULT:
         return secrets_manager.get_secret(secret_name, env_name or secret_name)
-    return os.getenv(env_name or secret_name)
+    return os.getenv(env_name or secret_name)  
+
 
 # === RÉCUPÉRATION DES SECRETS ===
 SECRET_KEY = get_secret('SECRET-KEY', 'SECRET_KEY')
 
 # Azure OpenAI
 AZURE_OPENAI_API_KEY = get_secret('AZURE-OPENAI-API-KEY', 'AZURE_OPENAI_API_KEY')
-AZURE_OPENAI_ENDPOINT =os.getenv('AZURE_OPENAI_ENDPOINT')
-AZURE_OPENAI_API_VERSION = os.getenv('AZURE_OPENAI_API_VERSION')
-AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv('AZURE_OPENAI_DEPLOYMENT_NAME')
-
+AZURE_OPENAI_ENDPOINT = get_secret('AZURE-OPENAI-ENDPOINT')        
+AZURE_OPENAI_API_VERSION = get_secret('AZURE-OPENAI-API-VERSION')  
+AZURE_OPENAI_DEPLOYMENT_NAME = get_secret('AZURE-OPENAI-DEPLOYMENT-NAME')
 # Azure Search
 AZURE_SEARCH_ENDPOINT = get_secret('AZURE-SEARCH-ENDPOINT', 'AZURE_SEARCH_ENDPOINT')
 AZURE_SEARCH_ADMIN_KEY = get_secret('AZURE-SEARCH-ADMIN-KEY', 'AZURE_SEARCH_ADMIN_KEY')
-AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME')
+AZURE_SEARCH_INDEX_NAME = "factguard-articles-index"
 
 # News API
 NEWS_API_KEY = get_secret('NEWS-API-KEY', 'NEWS_API_KEY')
@@ -141,7 +97,7 @@ SECRET_KEY = 'django-insecure-lnf=s!k^-qs#(39)=-+odx0j_tds!dfhm5^h7$anlcidw)leoe
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 # Application definition
 
