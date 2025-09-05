@@ -163,6 +163,7 @@ pkginfo==1.12.1.2
 portalocker==2.10.1
 protobuf==6.32.0
 psutil==7.0.0
+psycopg2-binary==2.9.10
 py-deviceid==0.1.1
 pycomposefile==0.0.34
 pycparser==2.22
