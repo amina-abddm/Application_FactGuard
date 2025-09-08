@@ -14,21 +14,15 @@ class RAGService:
         self.openai_service = AzureOpenAIService()
     
     def analyze_with_context(self, query: str, analysis_type: str = "reliability") -> Dict[str, Any]:
-        """
-        Analyse enrichie avec contexte de sources fiables
-        
-        Args:
-            query: Information à analyser
-            analysis_type: Type d'analyse (reliability, fact_check, bias_detection)
-        """
+        """Analyse enrichie avec contexte de sources fiables"""
         try:
-            # 1. Recherche hybride de sources pertinentes
-            relevant_sources = self._search_relevant_sources(query, top_k=5)
+            # Recherche de sources pertinentes avec diagnostic
+            relevant_sources = self._search_relevant_sources(query, top_k=10)
             
-            # 2. Construction du contexte enrichi
+            # Construction du contexte enrichi
             context = self._build_enhanced_context(relevant_sources, analysis_type)
             
-            # 3. Génération de l'analyse avec prompt spécialisé
+            # Génération de l'analyse avec prompt spécialisé
             analysis_result = self._perform_contextual_analysis(
                 query, context, analysis_type, relevant_sources
             )
@@ -50,7 +44,7 @@ class RAGService:
             }
             
         except Exception as e:
-            logger.error(f"❌ Erreur RAG enrichi: {e}")
+            logger.error(f"Erreur RAG enrichi: {e}")
             return {
                 'analysis_result': f"Erreur lors de l'analyse contextuelle: {str(e)}",
                 'sources_count': 0,
@@ -59,54 +53,110 @@ class RAGService:
                 'analysis_confidence': 0.0
             }
     
-    def _search_relevant_sources(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Recherche hybride de sources pertinentes"""
+    def _search_relevant_sources(self, query: str, top_k: int = 10) -> List[Dict]:
+        """Recherche de sources pertinentes avec diagnostic complet"""
         try:
-            # ✅ CORRECTION : Vérification de sécurité
+            # DIAGNOSTIC DETAILLE
+            logger.info(f"=== DIAGNOSTIC RECHERCHE RAG ===")
+            logger.info(f"Query: {query}")
+            logger.info(f"Top_k: {top_k}")
+            
+            # Vérification du client
             if not self.search_service or not hasattr(self.search_service, 'search_client') or not self.search_service.search_client:
-                logger.warning("❌ Azure Search client non disponible")
+                logger.error(" Azure Search client NON DISPONIBLE")
                 return []
             
-            # Recherche hybride (texte + vecteur sémantique)
+            logger.info(" Client Azure Search disponible")
+            
+            # Test de connexion basique
+            try:
+                test_results = self.search_service.search_client.search(
+                    search_text="*", 
+                    top=1,
+                    include_total_count=True
+                )
+                total_docs = getattr(test_results, 'get_count', lambda: 'Unknown')()
+                logger.info(f" Documents dans l'index: {total_docs}")
+            except Exception as test_e:
+                logger.error(f" Erreur test connexion: {test_e}")
+            
+            # Recherche SIMPLIFIEE et moins restrictive
+            logger.info(f" Recherche pour: '{query}'")
+            
             results = self.search_service.search_client.search(
                 search_text=query,
                 top=top_k,
-                search_mode="all",
+                search_mode="any",  # CHANGEMENT: "any" au lieu de "all"
                 include_total_count=True,
-                select=["title", "content", "url", "source", "reliability_score", "category", "date_published"],
-                highlight_fields="content,title",  # ✅ CORRECTION : String au lieu de liste
-                # semantic_configuration_name="default",  # ✅ Commenté temporairement
-                # query_type="semantic"  # ✅ Commenté temporairement
+                select=["id", "title", "content", "url", "source", "reliability_score", "date_published"],
+                # SUPPRESSION highlight_fields qui peut causer des erreurs
+                # highlight_fields="content,title",
             )
             
             sources = []
+            result_count = 0
+            
             for result in results:
-                sources.append({
+                result_count += 1
+                source_dict = {
+                    'id': result.get('id', ''),
                     'title': result.get('title', ''),
                     'content': result.get('content', '')[:1000],
                     'url': result.get('url', ''),
                     'source': result.get('source', ''),
                     'reliability_score': result.get('reliability_score', 0),
-                    'category': result.get('category', ''),
                     'date_published': result.get('date_published', ''),
                     '@search.score': result.get('@search.score', 0.0),
-                    '@search.highlights': result.get('@search.highlights', {})
-                })
+                }
+                sources.append(source_dict)
+                
+                # LOG DETAILLE CHAQUE SOURCE
+                logger.info(f"   Source {result_count}:")
+                logger.info(f"   ID: {source_dict['id']}")
+                logger.info(f"   Title: {source_dict['title'][:60]}...")
+                logger.info(f"   Source: {source_dict['source']}")
+                logger.info(f"   Score: {source_dict['@search.score']:.2f}")
             
-            logger.info(f"🔍 Trouvé {len(sources)} sources pertinentes")
+            logger.info(f" TOTAL SOURCES TROUVEES: {len(sources)}")
+            
+            if len(sources) == 0:
+                logger.warning(" AUCUNE SOURCE TROUVEE")
+                logger.warning("   Testez avec query='*' pour voir tous les documents")
+                
+                # Test de secours avec requête générale
+                try:
+                    fallback_results = self.search_service.search_client.search(
+                        search_text="*",
+                        top=3,
+                        select=["id", "title", "source"]
+                    )
+                    logger.info(" Exemples de documents dans l'index:")
+                    for i, doc in enumerate(fallback_results, 1):
+                        logger.info(f"   {i}. {doc.get('title', 'N/A')[:50]} - {doc.get('source', 'N/A')}")
+                except Exception as fallback_e:
+                    logger.error(f" Erreur test fallback: {fallback_e}")
+            
             return sources
             
         except Exception as e:
-            logger.error(f"❌ Erreur recherche sources: {e}")
+            logger.error(f" ERREUR recherche sources: {e}")
+            logger.error(f"Type erreur: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
     
     def _build_enhanced_context(self, sources: List[Dict], analysis_type: str) -> str:
         """Construit un contexte enrichi selon le type d'analyse"""
         if not sources:
+            logger.warning(" Aucune source pour construire le contexte")
             return "Aucune source contextuelle disponible."
         
+        logger.info(f" Construction contexte avec {len(sources)} sources")
+        
         context_parts = [
-            f"=== CONTEXTE FACTGUARD - ANALYSE DE {analysis_type.upper()} ===\n"
+            f"=== CONTEXTE FACTGUARD - ANALYSE DE {analysis_type.upper()} ===",
+            f" {len(sources)} sources analysées",
+            ""
         ]
         
         for i, source in enumerate(sources, 1):
@@ -117,19 +167,22 @@ class RAGService:
 SOURCE {i} - Fiabilité: {reliability_level} ({reliability:.2f})
 Titre: {source.get('title', 'N/A')}
 Source: {source.get('source', 'N/A')}
-Catégorie: {source.get('category', 'N/A')}
 Date: {source.get('date_published', 'N/A')[:10]}
 Contenu: {source.get('content', '')[:400]}...
 Score de pertinence: {source.get('@search.score', 0):.2f}
 ---""")
         
-        return "\n".join(context_parts)
+        context = "\n".join(context_parts)
+        logger.info(f" Contexte construit: {len(context)} caractères")
+        return context
     
     def _perform_contextual_analysis(self, query: str, context: str, 
-                                   analysis_type: str, sources: List[Dict]) -> str:
+                                analysis_type: str, sources: List[Dict]) -> str:
         """Effectue l'analyse avec le contexte enrichi"""
         
-        # Prompts spécialisés selon le type d'analyse
+        logger.info(f" Analyse avec {len(sources)} sources contextuelles")
+        
+        # Prompts spécialisés
         specialized_prompts = {
             "reliability": """
 Tu es un expert en vérification des faits pour FactGuard. Analyse la fiabilité de l'information fournie en utilisant le contexte de sources fiables disponibles.
@@ -139,7 +192,14 @@ INSTRUCTIONS SPÉCIFIQUES:
 2. Identifie les concordances et divergences avec les sources fiables
 3. Évalue la crédibilité basée sur la cohérence des sources
 4. Détecte les signaux d'alarme (dates incohérentes, sources peu fiables, etc.)
-5. Fournis un score de fiabilité justifié et des recommandations""",
+5. Fournis un score de fiabilité justifié et des recommandations
+
+FORMAT OBLIGATOIRE:
+📈 Score de fiabilité: XX/100
+📝 Analyse détaillée: [Explication avec preuves des sources]
+🔗 Sources consultées: [Liste des sources utilisées]
+✅/❌ VERDICT: [FIABLE/DOUTEUX/FAUX]
+""",
             
             "fact_check": """
 Tu es un fact-checker professionnel utilisant FactGuard. Vérifie les faits contenus dans l'information en t'appuyant sur les sources contextuelles.
@@ -149,17 +209,8 @@ FOCUS SUR:
 2. Identification des éléments vérifiables vs opinions
 3. Comparaison avec les données factuelles des sources
 4. Signalement des informations non vérifiées
-5. Classification: VRAI / PARTIELLEMENT VRAI / FAUX / NON VÉRIFIABLE""",
-            
-            "bias_detection": """
-Tu es un analyste de biais informationnels pour FactGuard. Détecte les biais potentiels dans l'information en utilisant le contexte de sources diversifiées.
-
-ANALYSE DES BIAIS:
-1. Biais de confirmation dans la présentation
-2. Sélectivité des faits présentés
-3. Langage orienté ou émotionnel
-4. Omissions significatives
-5. Perspective unique vs multiple points de vue"""
+5. Classification: VRAI / PARTIELLEMENT VRAI / FAUX / NON VÉRIFIABLE
+""",
         }
         
         system_prompt = specialized_prompts.get(analysis_type, specialized_prompts["reliability"])
@@ -174,11 +225,11 @@ INFORMATION À ANALYSER:
 {query}
 
 CONSIGNE: Utilise OBLIGATOIREMENT le contexte fourni pour enrichir ton analyse. Cite les sources utilisées et justifie ton évaluation.
-
-Réponds selon le format FactGuard habituel avec emojis et structure claire.
 """
         
-        return self.openai_service.analyze_information(enhanced_prompt, content_type='text')
+        result = self.openai_service.analyze_information(enhanced_prompt, content_type='text')
+        logger.info(f" Analyse terminée avec contexte de {len(sources)} sources")
+        return result
     
     def _calculate_confidence(self, sources: List[Dict]) -> float:
         """Calcule le niveau de confiance basé sur les sources"""
@@ -192,12 +243,12 @@ Réponds selon le format FactGuard habituel avec emojis et structure claire.
         
         # Score de confiance pondéré
         confidence = (avg_reliability * 0.5 + source_diversity * 0.3 + (avg_relevance/100) * 0.2)
-        return min(confidence, 1.0)  # Plafonner à 1.0
+        return min(confidence, 1.0)
 
     def get_similar_analyses(self, query: str, limit: int = 5) -> List[Dict]:
-        """Recherche d'analyses similaires (implémentation pour le protocole)"""
+        """Recherche d'analyses similaires"""
         try:
             return self._search_relevant_sources(query, top_k=limit)
         except Exception as e:
-            logger.error(f"❌ Erreur recherche analyses similaires: {e}")
+            logger.error(f"Erreur recherche analyses similaires: {e}")
             return []
