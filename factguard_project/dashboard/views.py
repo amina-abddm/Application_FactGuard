@@ -11,6 +11,7 @@ from .models import Analysis
 from typing import Optional, Protocol, TYPE_CHECKING
 import re
 import sys
+from datetime import date
 
 
 # ============================================================================
@@ -128,7 +129,7 @@ def analyzer_unified_view(request):
             if analysis_mode == 'rag':
                 try:
                     _auto_index_analysis(analysis)
-                    print(f"Analyse {analysis.id} ajoutée à la base de connaissances RAG")
+                    print(f"Analyse {analysis.pk} ajoutée à la base de connaissances RAG")
                 except Exception as e:
                     print(f"Erreur auto-indexation: {e}")
             
@@ -284,30 +285,62 @@ def _perform_standard_analysis(content, content_type):
 
 
 def extract_confidence_score(result):
-    """Extrait le score de confiance du résultat GPT"""
+    """Version robuste avec debug pour extraction du score"""
     try:
-        # Patterns pour extraire les scores de confiance
+        if not result:
+            print("DEBUG: Résultat vide pour extraction score")
+            return 0.7  # Score par défaut plus élevé
+            
+        result_str = str(result).lower()
+        print(f"DEBUG: Extraction score depuis: {result_str[:100]}...")
+        
+        # Patterns améliorés
         patterns = [
-            r'(?:score|fiabilité)[:]\s*([\d+(?:\.\d+)?)\s*[/%]',
-            r'([\d+(?:\.\d+)?)\s*[/%]',
-            r'confiance[:]\s*([\d+(?:\.\d+)?)',
-            r'`([\d+(?:\.\d+)?)\s*%`'
+            (r'score.*?(?:de\s+)?fiabilité.*?(\d+)%', "Score de fiabilité X%"),
+            (r'fiabilité.*?(\d+)%', "Fiabilité: X%"), 
+            (r'score.*?(\d+)%', "Score: X%"),
+            (r'(\d+)%', "X%"),
+            (r'score.*?(\d+(?:\.\d+)?)', "Score: 0.X"),
+            (r'confiance.*?(\d+(?:\.\d+)?)', "Confiance: 0.X"),
         ]
         
-        result_str = str(result).lower()
+        for pattern, description in patterns:
+            matches = re.findall(pattern, result_str)
+            if matches:
+                try:
+                    score = float(matches[0])
+                    if score > 1:
+                        score = score / 100
+                    score = min(max(score, 0.0), 1.0)
+                    print(f"DEBUG: Score extrait via '{description}': {score}")
+                    return score
+                except (ValueError, IndexError):
+                    continue
+                    
+        print("DEBUG: Aucun score trouvé, utilisation score par défaut")
+        return 0.7  # 70% par défaut
         
-        for pattern in patterns:
-            match = re.search(pattern, result_str)
-            if match:
-                score = float(match.group(1))
-                # Normaliser le score entre 0 et 1
-                return score / 100 if score > 1 else score
-                
     except Exception as e:
-        pass
+        print(f"DEBUG: Erreur extraction score: {e}")
+        return 0.7
+
+@login_required
+def analysis_detail_view(request, analysis_id):
+    """Vue détail d'une analyse spécifique"""
+    analysis = get_object_or_404(Analysis, pk=analysis_id, user=request.user)
     
-    # Score par défaut si aucun n'est trouvé
-    return 0.0
+    # Métadonnées pour affichage
+    context = {
+        'analysis': analysis,
+        'confidence_percentage': round(analysis.confidence_score * 100, 1),
+        'page_title': f'Analyse #{analysis.pk}',
+        'created_date': analysis.created_at.strftime('%d/%m/%Y à %H:%M'),
+        'word_count': len(analysis.text.split()),
+        'result_word_count': len(analysis.result.split()),
+    }
+    
+    return render(request, 'dashboard/analysis_detail.html', context)
+
 
 
 def _auto_index_analysis(analysis_obj):
@@ -356,89 +389,105 @@ def rag_analyzer_view(request):
 
 @login_required
 def history_view(request):
-    """Vue pour afficher l'historique avec les 5 dernières et bouton Plus"""
+    """Vue historique avec diagnostic et calculs robustes"""
+    
     user = request.user
+    
+    # Récupération complète avec debug
     all_analyses = Analysis.objects.filter(user=user).order_by('-created_at')
     total_count = all_analyses.count()
     
+    print(f"DEBUG HISTORY: User {user.username} - {total_count} analyses trouvées")
+    
     if not all_analyses.exists():
+        print("DEBUG HISTORY: Aucune analyse trouvée")
         return render(request, 'dashboard/history.html', {
             'analyses_recent': [],
             'analyses_all': [],
             'total_count': 0,
         })
     
+    # Vérification des scores pour diagnostic
+    scores = [a.confidence_score for a in all_analyses[:5]]
+    print(f"DEBUG HISTORY: Scores des 5 dernières analyses: {scores}")
+    
+    # Test des propriétés du modèle
+    first_analysis = all_analyses.first()
+    if first_analysis:
+        print(f"DEBUG HISTORY: Première analyse - Score: {first_analysis.confidence_score}, "
+                f"Niveau: {first_analysis.reliability_level}, "
+                f"Type: {first_analysis.type_display}")
+    
+    # Analyses récentes (5 dernières)
     analyses_recent = all_analyses[:5]
     
-    return render(request, 'dashboard/history.html', {
+    # Statistiques pour debug
+    avg_score = sum(a.confidence_score for a in all_analyses) / total_count if total_count > 0 else 0
+    reliable_count = sum(1 for a in all_analyses if a.confidence_score >= 0.6)
+    
+    print(f"DEBUG HISTORY: Score moyen: {avg_score:.3f}, Analyses fiables: {reliable_count}/{total_count}")
+    
+    context = {
         'analyses_recent': analyses_recent,
         'analyses_all': all_analyses,
         'total_count': total_count,
-    })
-
-
-@login_required
-def statistics_view(request): 
-    """Page statistiques complète - FactGuard"""
-    
-    user_analyses = Analysis.objects.filter(user=request.user)
-    total_analyses = user_analyses.count()
-    
-    avg_score_raw = user_analyses.aggregate(
-        avg_score=models.Avg('confidence_score')
-    )['avg_score'] or 0
-    avg_score_percentage = round(avg_score_raw * 100, 1)
-    
-    reliable_count = user_analyses.filter(confidence_score__gte=0.75).count()
-    reliable_content = round((reliable_count / total_analyses) * 100, 1) if total_analyses > 0 else 0
-    
-    today = timezone.now().date()
-    analyses_today = user_analyses.filter(created_at__date=today).count()
-    
-    type_counts = user_analyses.values('content_type').annotate(count=Count('id'))
-    type_stats = {'text': 0, 'link': 0, 'image': 0}
-    for item in type_counts:
-        content_type = item['content_type']
-        if content_type in type_stats:
-            type_stats[content_type] = item['count']
-    
-    total_content = sum(type_stats.values())
-    type_percentages = {
-        'text_percent': round((type_stats['text'] / total_content) * 100, 1) if total_content > 0 else 0,
-        'link_percent': round((type_stats['link'] / total_content) * 100, 1) if total_content > 0 else 0,
-        'image_percent': round((type_stats['image'] / total_content) * 100, 1) if total_content > 0 else 0,
+        # Ajout de statistiques pour le template
+        'avg_confidence': round(avg_score * 100, 1) if avg_score else 0,
+        'reliable_percentage': round((reliable_count / total_count * 100), 1) if total_count > 0 else 0,
     }
     
-    last_analysis = user_analyses.order_by('-created_at').first()
-    last_analysis_text = "Pas encore d'analyse"
-    if last_analysis:
-        time_diff = timezone.now() - last_analysis.created_at
-        if time_diff.days > 0:
-            last_analysis_text = f"Il y a {time_diff.days} jour(s)"
-        elif time_diff.seconds > 3600:
-            hours = time_diff.seconds // 3600
-            last_analysis_text = f"Il y a {hours} heure(s)"
-        else:
-            minutes = time_diff.seconds // 60
-            last_analysis_text = f"Il y a {minutes} minute(s)"
+    return render(request, 'dashboard/history.html', context)
+
+@login_required
+def statistics_view(request):
+    """Vue statistiques avec calculs c"""
     
-    # Déterminer le modèle utilisé
-    ai_model = "GPT-4o (Azure SDK)" if AZURE_SDK_AVAILABLE else "GPT-4o (Legacy)"
+    # Analyses totales
+    total_analyses = Analysis.objects.count()
+    
+    # Score moyen (conversion 0-1 vers 0-100%)
+    avg_score_raw = Analysis.objects.aggregate(Avg('confidence_score'))['confidence_score__avg']
+    avg_score = round(avg_score_raw * 100, 1) if avg_score_raw else 0
+    
+    # Contenu fiable (score >= 0.6 = 60%)
+    reliable_analyses = Analysis.objects.filter(confidence_score__gte=0.6).count()
+    reliable_content = round((reliable_analyses / total_analyses * 100), 1) if total_analyses > 0 else 0
+    
+    # Analyses par type
+    type_stats = {
+        'text': Analysis.objects.filter(content_type='text').count(),
+        'link': Analysis.objects.filter(content_type='link').count(),
+        'image': Analysis.objects.filter(content_type='image').count(),
+    }
+    
+    # Pourcentages par type
+    type_percentages = {}
+    if total_analyses > 0:
+        type_percentages = {
+            'text_percent': round((type_stats['text'] / total_analyses * 100), 1),
+            'link_percent': round((type_stats['link'] / total_analyses * 100), 1),
+            'image_percent': round((type_stats['image'] / total_analyses * 100), 1),
+        }
+    else:
+        type_percentages = {'text_percent': 0, 'link_percent': 0, 'image_percent': 0}
+    
+    # Statistiques supplémentaires
+    analyses_today = Analysis.objects.filter(created_at__date=date.today()).count()
+    last_analysis = Analysis.objects.first()  # Plus récente grâce à ordering
+    
+    simple_stats = {
+        'reliable_content': reliable_content,
+        'analyses_today': analyses_today,
+        'ai_model': 'Azure OpenAI',
+        'last_analysis': last_analysis.created_at.strftime('%d/%m/%Y %H:%M') if last_analysis else 'Aucune analyse'
+    }
     
     context = {
-        'page': 'Statistiques',
         'total_analyses': total_analyses,
-        'avg_score': avg_score_percentage,
+        'avg_score': avg_score,  # Maintenant en pourcentage
+        'simple_stats': simple_stats,
         'type_stats': type_stats,
         'type_percentages': type_percentages,
-        'simple_stats': {
-            'reliable_content': reliable_content,
-            'analyses_today': analyses_today,
-            'ai_model': ai_model,
-            'last_analysis': last_analysis_text,
-        },
-        'user': request.user,
-        'azure_sdk_status': AZURE_SDK_AVAILABLE,
     }
     
     return render(request, 'dashboard/statistics.html', context)
