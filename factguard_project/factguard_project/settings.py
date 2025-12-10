@@ -148,21 +148,10 @@ WSGI_APPLICATION = 'factguard_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_secret('POSTGRES-DATABASE'),
-        'USER': get_secret('POSTGRES-USERNAME'), 
-        'PASSWORD': get_secret('POSTGRES-PASSWORD'),
-        'HOST': get_secret('POSTGRES-HOST'),
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-            'connect_timeout': 30,  # Timeout connexion
-            'options': '-c statement_timeout=30000',  # Timeout requête (30s)
-        },
-        'CONN_MAX_AGE': 0,  #  Force nouvelles connexions
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
