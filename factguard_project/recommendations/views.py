@@ -1,6 +1,7 @@
 # recommandations/views.py
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404
+from django.contrib.auth.decorators import login_required
 from .models import Article, Theme
 from .utils import articles_by_theme
 
@@ -81,14 +82,14 @@ themes = [
             'icon_name': 'heart'
         }
     ]
-            
+@login_required           
 def recommendations(request):
     context = {
         "themes": themes,
     }
     return render(request, "recommendations/recommendations.html", context)
 
-
+@login_required
 def theme_articles(request, theme_name):
     """Articles d'un thème spécifique"""
     # Récupérer le thème actif

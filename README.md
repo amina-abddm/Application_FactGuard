@@ -98,8 +98,8 @@ FactGuard est une plateforme collaborative et intelligente permettant aux utilis
 ```bash
 git clone https://github.com/ton-repo/factguard.git
 cd factguard
-python -m venv env
-source env/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-python manage.py runserver
+python3 manage.py runserver
 ```

@@ -18,16 +18,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from dashboard import views as dashboard_views
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("home/", include("home.urls")),                  # accueil
-    path("dashboard/", include("dashboard.urls")),      # pages protégées
     path("accounts/", include("django.contrib.auth.urls")),  # login/logout/password reset
     path("accounts/", include("home.urls_auth")),       # signup custom
     path("dashboard/", include("dashboard.urls")),
     path("recommendations/", include("recommendations.urls")),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("health/", dashboard_views.health, name="health"),
 ]
 

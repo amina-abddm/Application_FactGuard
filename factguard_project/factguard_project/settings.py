@@ -10,44 +10,81 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
-
-
-
-
-
-import sys
 import os
+import sys
 from pathlib import Path
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 
-# ➜  remonte de 3 niveaux pour pointer sur Application_FactGuard
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))  # Debug : s'affichera au lancement
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-# 🔧 NOUVEAU : Chargement .env depuis azure/
-env_path = PROJECT_ROOT / 'factguard_azure' / '.env'
-load_dotenv(env_path)
+print("PROJECT_ROOT ajouté à sys.path :", str(PROJECT_ROOT))
 
-# Debug multi-plateforme
-print(f"OS: {os.name}")
-print(f"Chemin .env: {env_path}")
-print(f"Existe: {'OUI' if env_path.exists() else 'NON'}")
+# Chargement sécurisé des secrets
+try:
+    from config.secrets import secrets_manager
+    USE_KEY_VAULT = True
+    print(" Azure Key Vault configuré avec succès")
+except ImportError as e:
+    USE_KEY_VAULT = False
+    print(f" Fallback vers variables d'environnement: {e}")
 
-# ✅ VOTRE CODE ICI - Configuration Azure Search
-AZURE_CONFIG_DIR = BASE_DIR.parent / 'factguard_azure'  # ✅ CORRECT
-AZURE_SEARCH_SCHEMA_FILE = AZURE_CONFIG_DIR / 'search_index_schema.json'
+load_dotenv()
 
-# Variables d'environnement Azure (récupérées depuis .env)
-AZURE_SEARCH_ENDPOINT = os.getenv('AZURE_SEARCH_ENDPOINT')
-AZURE_SEARCH_API_KEY = os.getenv('AZURE_SEARCH_API_KEY')
-AZURE_SEARCH_INDEX_NAME = os.getenv('AZURE_SEARCH_INDEX_NAME', 'factguard-analyses')
+
+def get_secret(secret_name, env_name=None):
+    if USE_KEY_VAULT:
+        return secrets_manager.get_secret(secret_name, env_name or secret_name)
+    return os.getenv(env_name or secret_name)  
+
+
+# === RÉCUPÉRATION DES SECRETS ===
+SECRET_KEY = get_secret('SECRET-KEY', 'SECRET_KEY')
+
+# Azure OpenAI
+AZURE_OPENAI_API_KEY = get_secret('AZURE-OPENAI-API-KEY', 'AZURE_OPENAI_API_KEY')
+AZURE_OPENAI_ENDPOINT = get_secret('AZURE-OPENAI-ENDPOINT')        
+AZURE_OPENAI_API_VERSION = get_secret('AZURE-OPENAI-API-VERSION')  
+AZURE_OPENAI_DEPLOYMENT_NAME = get_secret('AZURE-OPENAI-DEPLOYMENT-NAME')
+# Azure Search
+AZURE_SEARCH_ENDPOINT = get_secret('AZURE-SEARCH-ENDPOINT', 'AZURE_SEARCH_ENDPOINT')
+AZURE_SEARCH_ADMIN_KEY = get_secret('AZURE-SEARCH-ADMIN-KEY', 'AZURE_SEARCH_ADMIN_KEY')
+AZURE_SEARCH_INDEX_NAME = get_secret("factguard-articles-index")
+
+# News API
+NEWS_API_KEY = get_secret('NEWS-API-KEY', 'NEWS_API_KEY')
+
+# Monitoring
+APPLICATIONINSIGHTS_CONNECTION_STRING = get_secret('APPLICATIONINSIGHTS-CONNECTION-STRING', 'APPLICATIONINSIGHTS_CONNECTION_STRING')
+
+# === ALIAS POUR COMPATIBILITÉ ===
+AZURE_SEARCH_API_KEY = AZURE_SEARCH_ADMIN_KEY
+
+# === INJECTION DANS OS.ENVIRON POUR LE CODE MÉTIER ===
+# (Nécessaire car certains modules utilisent os.getenv directement)
+environment_mappings = {
+    'AZURE_OPENAI_API_KEY': AZURE_OPENAI_API_KEY,
+    'AZURE_OPENAI_ENDPOINT': AZURE_OPENAI_ENDPOINT,
+    'AZURE_OPENAI_API_VERSION': AZURE_OPENAI_API_VERSION,
+    'AZURE_OPENAI_DEPLOYMENT_NAME': AZURE_OPENAI_DEPLOYMENT_NAME,
+    
+    'AZURE_SEARCH_API_KEY': AZURE_SEARCH_API_KEY,
+    'AZURE_SEARCH_ENDPOINT': AZURE_SEARCH_ENDPOINT,
+    'AZURE_SEARCH_ADMIN_KEY': AZURE_SEARCH_ADMIN_KEY,
+    'AZURE_SEARCH_INDEX_NAME': AZURE_SEARCH_INDEX_NAME,
+    
+    'NEWS_API_KEY': NEWS_API_KEY,
+    
+    'APPLICATIONINSIGHTS_CONNECTION_STRING': APPLICATIONINSIGHTS_CONNECTION_STRING,
+}
+
+# Injecter dans os.environ
+for key, value in environment_mappings.items():
+    if value:
+        os.environ[key] = str(value)
+
 
 
 
@@ -60,8 +97,7 @@ SECRET_KEY = 'django-insecure-lnf=s!k^-qs#(39)=-+odx0j_tds!dfhm5^h7$anlcidw)leoe
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 # Application definition
 
@@ -75,6 +111,7 @@ INSTALLED_APPS = [
     'home',  
     'dashboard',
     'recommendations',
+    'data_pipeline',
 ]
 
 MIDDLEWARE = [
@@ -106,7 +143,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'factguard_project.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
@@ -116,7 +152,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -136,7 +171,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -148,12 +182,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -163,7 +195,6 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # Redirections après login / logout
 LOGIN_REDIRECT_URL = "dashboard:analyzer"

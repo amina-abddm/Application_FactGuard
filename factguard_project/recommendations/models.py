@@ -14,11 +14,11 @@ class Article(models.Model):
         ('health', 'Santé'),
     ]
     
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=500)
     summary = models.TextField()
     theme = models.CharField(max_length=20, choices=THEMES)
     read_time = models.CharField(max_length=10, default="5 min")
-    url = models.URLField(blank=True)
+    url = models.URLField(max_length=500, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     

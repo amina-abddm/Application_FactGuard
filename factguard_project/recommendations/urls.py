@@ -1,11 +1,10 @@
-# recommandations/urls.py
+# recommendations/urls.py
 from django.urls import path
-from .views import recommendations,theme_articles
-
+from .views import recommendations, theme_articles
 
 app_name = "recommendations"
 
 urlpatterns = [
     path("", recommendations, name="recommendations"),
-    path('recommendations/<str:theme_name>/', theme_articles, name='theme_articles'),   
+    path('<str:theme_name>/', theme_articles, name='theme_articles'),  
 ]
